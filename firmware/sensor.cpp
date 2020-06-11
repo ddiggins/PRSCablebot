@@ -26,7 +26,8 @@ int Sensor::run(){
 
     if (enabled.value.toInt()){
         Serial.print("{\"id\" : \"");
-        Serial.print(id.value);
+        // Serial.print(id.value);
+        Serial.print(attributes.attrs[0]->value);
         Serial.print("\", \"enabled\" : ");
         Serial.print(enabled.value);
         Serial.print(", \"value\" : ");

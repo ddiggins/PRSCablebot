@@ -21,7 +21,7 @@ class Sensor{
         String value;
 
     }Attribute;
-    
+
 
     typedef struct Attributes {
         // Gives each object attributes (change size as needed)
@@ -45,6 +45,5 @@ class Sensor{
     Sensor();
 
 };
-
 
 #endif

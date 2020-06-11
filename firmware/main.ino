@@ -20,21 +20,22 @@ void setup(){
 void loop(){
 
     // Initialize classes and define parameters
-    // Interpreter interpreter;
+    Interpreter interpreter;
 
     
 
-    // while(1){
+    while(1){
 
-    //     // Run interpreter
-    //     interpreter.execute(client);
+        // Run interpreter
+        interpreter.execute(client);
+    }
+
+    // Sensor sensor;
+
+    // while (1){
+    //     sensor.run();
     // }
 
-    Sensor sensor;
-
-    while(1){
-        sensor.run();
-    }
 
 
 }
