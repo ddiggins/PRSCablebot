@@ -30,19 +30,21 @@ class Sensor{
         Attribute* attrs[2];
     } Attributes;
 
+    Attribute enabled = {"enabled", "1"};
+
+    public:
+
 
     // Attributes of sensor
     Attribute id = {"id", "Generic Sensor"};
-    Attribute enabled = {"enabled", "1"};
 
     // Define all attributes of class
     Attributes attributes;
 
-    public:
 
     int run();
     int update(JsonObject params);
-    Sensor();
+    Sensor(String name);
 
 };
 

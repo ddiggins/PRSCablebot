@@ -22,19 +22,33 @@ void loop(){
     // Initialize classes and define parameters
     Interpreter interpreter;
 
+    // Create list of sensors and structure to hold them
+
+    typedef struct Sensors{
+        int number = 2;
+        Sensor* items[2]; // Number of sensors
+    } Sensors;
+
+    Sensor sensor("Named Sensor");
+
+    Sensors sensors;
+    sensors.items[0] = &sensor;
+
+
+
     
 
-    while(1){
+    // while(1){
 
-        // Run interpreter
-        interpreter.execute(client);
-    }
+    //     // Run interpreter
+    //     interpreter.execute(client);
+    // }
 
     // Sensor sensor;
 
-    // while (1){
-    //     sensor.run();
-    // }
+    while (1){
+        sensor.run();
+    }
 
 
 

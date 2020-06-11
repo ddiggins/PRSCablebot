@@ -38,8 +38,9 @@ int Sensor::run(){
 }
 
 
-Sensor::Sensor(){
+Sensor::Sensor(String name){
     // Define sensor attributes outside of class definition
+    id.value = name;
     attributes.attrs[0] = &id;
     attributes.attrs[1] = &enabled;
 }

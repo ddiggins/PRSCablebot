@@ -20,7 +20,6 @@ class Interpreter{
     // StaticJsonDocument<200> doc;
 
 
-    /* Sensors */
 
 
 
