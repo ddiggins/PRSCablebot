@@ -14,10 +14,11 @@
 
 class Sensor{
 
+    protected:
+
     typedef struct Attribute {
         String name;
         String value;
-        //TODO: Make work with things other than integers
 
     }Attribute;
     
@@ -30,24 +31,18 @@ class Sensor{
     } Attributes;
 
 
-
     // Attributes of sensor
     Attribute id = {"id", "Generic Sensor"};
-    Attribute enabled = {"enabled", "0"};
-
+    Attribute enabled = {"enabled", "1"};
 
     // Define all attributes of class
     Attributes attributes;
 
-
-
-
+    public:
 
     int run();
     int update(JsonObject params);
     Sensor();
-
-
 
 };
 

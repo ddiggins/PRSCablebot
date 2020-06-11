@@ -1,5 +1,6 @@
 {
     "programmer": "AVR ISP",
     "board": "arduino:avr:uno",
-    "sketch": "firmware/main.ino"
+    "sketch": "firmware/main.ino",
+    "port": "/dev/ttyACM0"
 }

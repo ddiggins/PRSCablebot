@@ -27,6 +27,7 @@ class Interpreter{
     public:
 
     // Variables to be used by other classes
+    //TODO: Make return return error code
     JsonObject execute(SoftwareSerial client);
 };
 

@@ -6,12 +6,13 @@
 #include "sensor.h"
 #include <SoftwareSerial.h>
 
+SoftwareSerial client(2, 3); // RX, TX
+
 void setup(){
     // Initialize serial at baud 115200
     Serial.begin(115200);
 
     // Initialize software serial at baud 4800
-    SoftwareSerial client(2, 3); // RX, TX
     client.begin(4800);
 
 }
@@ -19,14 +20,20 @@ void setup(){
 void loop(){
 
     // Initialize classes and define parameters
-    Interpreter interpreter;
+    // Interpreter interpreter;
 
     
 
-    while(1){
+    // while(1){
 
-        // Run interpreter
-        interpreter.execute(client);
+    //     // Run interpreter
+    //     interpreter.execute(client);
+    // }
+
+    Sensor sensor;
+
+    while(1){
+        sensor.run();
     }
 
 
