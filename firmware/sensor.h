@@ -30,7 +30,7 @@ class Sensor{
         Attribute* attrs[2];
     } Attributes;
 
-    Attribute enabled = {"enabled", "1"};
+    Attribute enabled = {"enabled", "0"};
 
     public:
 

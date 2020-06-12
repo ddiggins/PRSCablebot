@@ -20,15 +20,15 @@ int Interpreter::read(DynamicJsonDocument* doc, JsonObject* root){
     String str;
 
     if (Serial.available() > 0){
-        // read the incoming byte:
+        // read the incoming line:
         str = "0";
         str = Serial.readStringUntil('\n');
         Serial.println(str);
 
         if (str == "0"){return;}
-    
         // Interprets meaning with json
         DeserializationError error = deserializeJson(*doc, str);
+        Serial.println(error.c_str());
 
         // Handles error
         if (error) {

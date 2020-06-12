@@ -44,17 +44,35 @@ void loop(){
 
     while(1){
 
+
+
+
+        // DynamicJsonBuffer jb;
+        // JsonObject& root = jb.parseObject(Serial);
+
         // Run interpreter
 
-        if (millis()-last_time > 1000){
-            interpreter.read(&doc, &root);
-            const char* id = doc["id"];
-            Serial.println(String(id));
-            for(int i=0; i<sensors.number; i++){
-                if (sensors.items[i]->attributes.attrs[0]->name.equals(String(id))){
-                    sensors.items[i]->update(root);
-                }
+        interpreter.read(&doc, &root);
+        const char* id = root["id"];
+        if (String(id) != ""){
+        Serial.print("id is:");
+        Serial.println(String(id));
+        }
+
+
+        for (JsonObject::iterator it=root.begin(); it!=root.end(); ++it) {
+            Serial.println(it->key().c_str()); // is a JsonString
+            // Serial.println(it->value().as<char*>()); // is a JsonVariant
+        }
+
+
+        for(int i=0; i<sensors.number; i++){
+            if (sensors.items[i]->attributes.attrs[0]->name.equals(String(id))){
+                sensors.items[i]->update(root);
             }
+        }
+
+        if (millis()-last_time > 1000){
 
             for(int i=0; i<sensors.number; i++){
                 sensors.items[i]->run();
