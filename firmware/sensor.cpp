@@ -2,14 +2,13 @@
 // Can be adapted to support sensors, motors, etc...
 
 // Includes
-
 #include <ArduinoJson.h>
 #include "sensor.h"
 
 int Sensor::update(JsonObject params){
 
     for (JsonPair p : params){
-        for (int i=0; i<attributes.number; i++){
+        for (int i=1; i<attributes.number; i++){  // Go from 1 to exclude id (check that this is correct)
             if (attributes.attrs[i]->name.equals(p.key().c_str())){
                 // If the string matches the name of an attribute
                 attributes.attrs[i]->value = String (p.value().as<char*>());
