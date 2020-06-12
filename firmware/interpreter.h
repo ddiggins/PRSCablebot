@@ -11,6 +11,7 @@
 #include "interpreter.h"
 #include "json.h"
 #include "sensor.h"
+// #include "genericObject.h"
 
 class Interpreter{
 
@@ -20,7 +21,7 @@ class Interpreter{
 
     char json[] = "";
     String str;
-    
+
     public:
 
     // Variables to be used by other classes

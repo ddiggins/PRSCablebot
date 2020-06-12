@@ -4,6 +4,7 @@
 // Includes
 #include <ArduinoJson.h>
 #include "sensor.h"
+// #include "genericObject.h"
 
 int Sensor::update(JsonDocument* params){ // Same as doc
 

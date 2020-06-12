@@ -7,6 +7,7 @@
 #include "json.h"
 #include "sensor.h"
 #include <SoftwareSerial.h>
+#include "object.h"
 
 
 SoftwareSerial client(2, 3); // RX, TX
@@ -29,6 +30,11 @@ void loop(){
         const static int number = 1;
         Sensor* items[number]; // Number of sensors
     } Sensors;
+
+    // typedef union GenericObject{
+    //     Sensor* s;
+    //     int i;
+    // } GenericObject;
 
     Sensor sensor("Sensor1");
 

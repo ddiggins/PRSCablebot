@@ -6,13 +6,14 @@
 
 // Includes
 
+#include "object.h"
 #include <ArduinoJson.h>
 #include <string.h>
 #include "interpreter.h"
 #include "json.h"
 
 
-class Sensor{
+class Sensor: public GenericObject{
 
     protected:
 
