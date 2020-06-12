@@ -19,14 +19,24 @@ int Interpreter::read(DynamicJsonDocument* doc, JsonObject* root){
     char json[] = "";
     String str;
 
+
+
+
+
+
+
     if (Serial.available() > 0){
         // read the incoming line:
         str = "0";
         str = Serial.readStringUntil('\n');
         Serial.println(str);
 
+
+        
+
         if (str == "0"){return;}
         // Interprets meaning with json
+
         DeserializationError error = deserializeJson(*doc, str);
         Serial.println(error.c_str());
 
@@ -37,8 +47,13 @@ int Interpreter::read(DynamicJsonDocument* doc, JsonObject* root){
             return 1;
         }
 
-        // Get the JsonObject in the JsonDocument
-        *root = doc->to<JsonObject>();
+        // // Get the JsonObject in the JsonDocument
+        // *root = doc->to<JsonObject>();
+        // const char* a = (*doc)["id"];
+        // Serial.println(a);
+        // JsonArray test = doc->as<JsonArray>();
+        // Serial.println(test.size());
+
     }
     return 0;
     

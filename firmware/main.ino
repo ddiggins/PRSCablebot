@@ -47,13 +47,10 @@ void loop(){
 
 
 
-        // DynamicJsonBuffer jb;
-        // JsonObject& root = jb.parseObject(Serial);
-
         // Run interpreter
 
         interpreter.read(&doc, &root);
-        const char* id = root["id"];
+        const char* id = doc["id"];
         if (String(id) != ""){
         Serial.print("id is:");
         Serial.println(String(id));
@@ -72,13 +69,13 @@ void loop(){
             }
         }
 
-        if (millis()-last_time > 1000){
+        // if (millis()-last_time > 1000){
 
             for(int i=0; i<sensors.number; i++){
                 sensors.items[i]->run();
             }
-            last_time = millis();
-        }
+        //     last_time = millis();
+        // }
 
     }
 
