@@ -5,16 +5,22 @@
 #include <ArduinoJson.h>
 #include "sensor.h"
 
-int Sensor::update(JsonObject params){
+int Sensor::update(JsonDocument* params){
 
-    for (JsonPair p : params){
-        for (int i=1; i<attributes.number; i++){  // Go from 1 to exclude id (check that this is correct)
+    JsonObject obj = (*params).as<JsonObject>();
+
+    for (JsonPair p : obj){
+        // Serial.println(p.key().c_str());
+        for (int i=0; i<attributes.number; i++){  // Go from 1 to exclude id (check that this is correct)
+            // Serial.print("Test:");
+            // Serial.println(p.key().c_str());
             if (attributes.attrs[i]->name.equals(p.key().c_str())){
                 // If the string matches the name of an attribute
                 attributes.attrs[i]->value = String (p.value().as<char*>());
             }
         }
     }
+    // Serial.println("End Test");
     return 0;
 }
 

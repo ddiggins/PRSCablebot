@@ -27,11 +27,11 @@ void loop(){
     // Create list of sensors and structure to hold them
 
     typedef struct Sensors{
-        int number = 2;
-        Sensor* items[2]; // Number of sensors
+        int number = 1;
+        Sensor* items[1]; // Number of sensors
     } Sensors;
 
-    Sensor sensor("Named Sensor");
+    Sensor sensor("Sensor1");
 
     Sensors sensors;
     sensors.items[0] = &sensor;
@@ -51,21 +51,23 @@ void loop(){
 
         interpreter.read(&doc, &root);
         const char* id = doc["id"];
-        if (String(id) != ""){
-        Serial.print("id is:");
-        Serial.println(String(id));
-        }
+        // if (String(id) != ""){
+        // Serial.print("id is:");
+        // Serial.println(String(id));
+        // }
 
 
-        for (JsonObject::iterator it=root.begin(); it!=root.end(); ++it) {
-            Serial.println(it->key().c_str()); // is a JsonString
-            // Serial.println(it->value().as<char*>()); // is a JsonVariant
-        }
+        // for (JsonObject::iterator it=root.begin(); it!=root.end(); ++it) {
+        //     Serial.println(it->key().c_str()); // is a JsonString
+        //     // Serial.println(it->value().as<char*>()); // is a JsonVariant
+        // }
 
 
         for(int i=0; i<sensors.number; i++){
-            if (sensors.items[i]->attributes.attrs[0]->name.equals(String(id))){
-                sensors.items[i]->update(root);
+            // Serial.println(sensors.items[i]->attributes.attrs[0]->name);
+            if (sensors.items[i]->attributes.attrs[0]->value.equals(String(id))){
+                // Serial.println("Matched");
+                sensors.items[i]->update(&doc);
             }
         }
 

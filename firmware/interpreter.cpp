@@ -48,7 +48,7 @@ int Interpreter::read(DynamicJsonDocument* doc, JsonObject* root){
         }
 
         // // Get the JsonObject in the JsonDocument
-        // *root = doc->to<JsonObject>();
+        // *root = doc->to<JsonArray>();
         // const char* a = (*doc)["id"];
         // Serial.println(a);
         // JsonArray test = doc->as<JsonArray>();

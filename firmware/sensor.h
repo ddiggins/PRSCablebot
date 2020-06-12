@@ -43,7 +43,7 @@ class Sensor{
 
 
     int run();
-    int update(JsonObject params);
+    int update(JsonDocument* params);
     Sensor(String name);
 
 };
