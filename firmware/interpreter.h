@@ -17,19 +17,16 @@ class Interpreter{
     protected:
 
     /* Variables/methods to be used only by the interpreter */
-    // Allocate memory for DynamicJsonDocument
-    // TODO: Research Memory Alocation
 
-
-
-
-
+    char json[] = "";
+    String str;
+    
     public:
 
     // Variables to be used by other classes
-    int read(DynamicJsonDocument* doc, JsonObject* root);
+    int read(DynamicJsonDocument* doc);
     // TODO: Write Clear DynamicJsonDocument Function
-    int clear();
+    int clear(DynamicJsonDocument* doc);
 };
 
 #endif

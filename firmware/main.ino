@@ -22,13 +22,12 @@ void loop(){
     Interpreter interpreter;
     const int capacity = 1000; // Bytes of longest string needed
     DynamicJsonDocument doc(capacity);
-    JsonObject root;
 
     // Create list of sensors and structure to hold them
 
     typedef struct Sensors{
-        int number = 1;
-        Sensor* items[1]; // Number of sensors
+        const static int number = 1;
+        Sensor* items[number]; // Number of sensors
     } Sensors;
 
     Sensor sensor("Sensor1");
@@ -39,54 +38,26 @@ void loop(){
     int last_time = 0;
 
 
-
-    
-
     while(1){
-
-
-
 
         // Run interpreter
 
-        interpreter.read(&doc, &root);
-        const char* id = doc["id"];
-        // if (String(id) != ""){
-        // Serial.print("id is:");
-        // Serial.println(String(id));
-        // }
-
-
-        // for (JsonObject::iterator it=root.begin(); it!=root.end(); ++it) {
-        //     Serial.println(it->key().c_str()); // is a JsonString
-        //     // Serial.println(it->value().as<char*>()); // is a JsonVariant
-        // }
+        interpreter.read(&doc);
+        const char* id = doc["id"]; // Extract id from json
 
 
         for(int i=0; i<sensors.number; i++){
-            // Serial.println(sensors.items[i]->attributes.attrs[0]->name);
             if (sensors.items[i]->attributes.attrs[0]->value.equals(String(id))){
-                // Serial.println("Matched");
-                sensors.items[i]->update(&doc);
+                sensors.items[i]->update(&doc); // If the id matches then update
             }
         }
 
-        // if (millis()-last_time > 1000){
+        if (millis()-last_time > 1000){ // Read once per second
 
             for(int i=0; i<sensors.number; i++){
                 sensors.items[i]->run();
             }
-        //     last_time = millis();
-        // }
-
+            last_time = millis();
+        }
     }
-
-    // // Sensor sensor;
-
-    // while (1){
-    //     sensor.run();
-    // }
-
-
-
 }

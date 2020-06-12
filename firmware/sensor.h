@@ -26,8 +26,8 @@ class Sensor{
     typedef struct Attributes {
         // Gives each object attributes (change size as needed)
         //TODO: Figure out why number does not work in attrs
-        int number = 2;
-        Attribute* attrs[2];
+        const static int number = 2;
+        Attribute* attrs[number];
     } Attributes;
 
     Attribute enabled = {"enabled", "0"};

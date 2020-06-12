@@ -7,58 +7,30 @@
 #include "json.h"
 #include "sensor.h"
 
-
-// TODO: Download libraries
-// TODO: Write a function that clears doc
-
-int Interpreter::read(DynamicJsonDocument* doc, JsonObject* root){
-     
-
-    // TODO: Read incoming lines from serial
-    // Look for Serial.read() function
-    char json[] = "";
-    String str;
-
-
-
-
-
-
+int Interpreter::read(DynamicJsonDocument* doc){
 
     if (Serial.available() > 0){
         // read the incoming line:
         str = "0";
         str = Serial.readStringUntil('\n');
-        Serial.println(str);
-
-
-        
+        // Serial.println(str);
 
         if (str == "0"){return;}
+
         // Interprets meaning with json
-
         DeserializationError error = deserializeJson(*doc, str);
-        Serial.println(error.c_str());
 
-        // Handles error
+        // Handles json reading errors
         if (error) {
             Serial.print(F("deserializeJson() failed: "));
             Serial.println(error.c_str());
             return 1;
         }
-
-        // // Get the JsonObject in the JsonDocument
-        // *root = doc->to<JsonArray>();
-        // const char* a = (*doc)["id"];
-        // Serial.println(a);
-        // JsonArray test = doc->as<JsonArray>();
-        // Serial.println(test.size());
-
     }
     return 0;
     
 }
 
-int Interpreter::clear() {
-    // TODO: Clear DynamicJsonDocument
+int Interpreter::clear(DynamicJsonDocument* doc) {
+    doc->clear();
 }
