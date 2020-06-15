@@ -1,4 +1,5 @@
 // Interpreter for serial commands
+
 #include <ArduinoJson.h>
 #include <StreamUtils.h>
 #include <SoftwareSerial.h>
@@ -13,9 +14,8 @@ int Interpreter::read(DynamicJsonDocument* doc){
         // read the incoming line:
         str = "0";
         str = Serial.readStringUntil('\n');
-        // Serial.println(str);
 
-        if (str == "0"){return;}
+        if (str == "0"){return;} // Catches blank lines
 
         // Interprets meaning with json
         DeserializationError error = deserializeJson(*doc, str);

@@ -12,40 +12,28 @@
 #include "interpreter.h"
 #include "json.h"
 
-
+// An example of a generic sensor type.
+// Inherits from GenericObject and redefines methods to update parameters and run
+// Each object must have a unique id as its first attribute so it can be addressed
 class Sensor: public GenericObject{
 
     protected:
-
-    typedef struct Attribute {
-        String name;
-        String value;
-
-    }Attribute;
-
-
-    typedef struct Attributes {
-        // Gives each object attributes (change size as needed)
-        //TODO: Figure out why number does not work in attrs
-        const static int number = 2;
-        Attribute* attrs[number];
-    } Attributes;
-
     Attribute enabled = {"enabled", "0"};
 
     public:
-
 
     // Attributes of sensor
     Attribute id = {"id", "Generic Sensor"};
 
     // Define all attributes of class
     Attributes attributes;
+    
+    // Creates a Sensor object and assigns a unique id to the object
+    Sensor(String name);
 
-
+    // Methods inherited from GenericObject and redefined to fit the characteristic of the object
     int run();
     int update(JsonDocument* params);
-    Sensor(String name);
     String id_name();
 
 };
