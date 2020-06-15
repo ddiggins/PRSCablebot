@@ -10,6 +10,9 @@
 #include "object.h"
 
 
+// Test JSON: {"id" : "Sensor1", "enabled" : "1"}
+
+
 SoftwareSerial client(2, 3); // RX, TX
 
 void setup(){
@@ -31,10 +34,6 @@ void loop(){
         Sensor* items[number]; // Number of sensors
     } Sensors;
 
-    // typedef union GenericObject{
-    //     Sensor* s;
-    //     int i;
-    // } GenericObject;
 
     Sensor sensor("Sensor1");
 
@@ -53,7 +52,7 @@ void loop(){
 
 
         for(int i=0; i<sensors.number; i++){
-            if (sensors.items[i]->attributes.attrs[0]->value.equals(String(id))){
+            if (sensors.items[i]->id_name().equals(String(id))){
                 sensors.items[i]->update(&doc); // If the id matches then update
             }
         }

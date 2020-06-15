@@ -46,6 +46,7 @@ class Sensor: public GenericObject{
     int run();
     int update(JsonDocument* params);
     Sensor(String name);
+    String id_name();
 
 };
 

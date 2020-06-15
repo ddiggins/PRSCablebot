@@ -46,3 +46,7 @@ Sensor::Sensor(String name){
     attributes.attrs[0] = &id;
     attributes.attrs[1] = &enabled;
 }
+
+String Sensor::id_name(){
+    return attributes.attrs[0]->value;
+}
