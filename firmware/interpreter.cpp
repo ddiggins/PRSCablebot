@@ -5,7 +5,6 @@
 #include <SoftwareSerial.h>
 #include <string.h>
 #include "interpreter.h"
-#include "json.h"
 #include "sensor.h"
 
 int Interpreter::read(DynamicJsonDocument* doc){

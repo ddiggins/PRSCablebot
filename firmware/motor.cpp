@@ -3,10 +3,11 @@
 
 // Includes
 #include <ArduinoJson.h>
-#include "sensor.h"
 #include "object.h"
+#include "motor.h"
 
-int Sensor::update(JsonDocument* params){ // Same as doc
+
+int Motor::update(JsonDocument* params){ // Same as doc
 
     // Interpret the document to an indexable object (JsonObject is a reference to the document not a copy)
     JsonObject obj = (*params).as<JsonObject>();
@@ -23,32 +24,27 @@ int Sensor::update(JsonDocument* params){ // Same as doc
 }
 
 
-int Sensor::run(){
+int Motor::run(){
 
-    if ((millis()-last_time) > 1000/update_rate.value.toInt()){
-
-        if (enabled.value.toInt()){
-            Serial.print("{\"id\" : \"");
-            Serial.print(id_name());
-            Serial.print("\", \"enabled\" : ");
-            Serial.print(enabled.value);
-            Serial.print(", \"value\" : ");
-            Serial.print(4); // Arbitrary value replace with real output
-            Serial.println("}");
-        }
-        last_time = millis();
+    if (enabled.value.toInt()){
+        Serial.print("{\"id\" : \"");
+        Serial.print(id_name());
+        Serial.print("\", \"enabled\" : ");
+        Serial.print(enabled.value);
+        Serial.print(", \"value\" : ");
+        Serial.print(4); // Arbitrary value replace with real output
+        Serial.println("}");
     }
     return 0;
 }
 
 
-Sensor::Sensor(String name){
+Motor::Motor(String name){
     id.value = name;
     attributes.attrs[0] = &id; // id must always come first
     attributes.attrs[1] = &enabled;
-    attributes.attrs[2] = &update_rate;
 }
 
-String Sensor::id_name(){
+String Motor::id_name(){
     return attributes.attrs[0]->value;
 }

@@ -7,9 +7,9 @@
 #include <StreamUtils.h>
 #include <SoftwareSerial.h>
 #include <string.h>
-#include "interpreter.h"
-#include "json.h"
-#include "sensor.h"
+// #include "interpreter.h"
+// #include "sensor.h"
+// #include "motor.h"
 
 // A generic object that is inherited by specific object types to allow polymorphic
 // indexing of connected objects.

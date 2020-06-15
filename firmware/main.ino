@@ -3,10 +3,11 @@
 #include <ArduinoJson.h>
 #include <StreamUtils.h>
 #include "interpreter.h"
-#include "json.h"
-#include "sensor.h"
 #include <SoftwareSerial.h>
 #include "object.h"
+#include "motor.h"
+#include "sensor.h"
+
 
 
 // Test JSON: {"id" : "Sensor1", "enabled" : "1"}
@@ -14,9 +15,14 @@
 // Uncomment to use software serial
 // SoftwareSerial client(2, 3); // RX, TX
 
+//Set pin for motor motorDrive
+int motorDrive = 9;
+
 void setup(){
     // Initialize serial at baud 115200
     Serial.begin(115200);
+    // Set Motor speed and direction control pin.
+    pinMode(motorDrive, OUTPUT);
 }
 
 void loop(){
@@ -41,9 +47,6 @@ void loop(){
     Objects objects;
     objects.items[0] = &sensor;
 
-
-    int last_time = 0; // FOr sensor read frequency
-
     while(1){
 
         // Run interpreter
@@ -56,12 +59,10 @@ void loop(){
             }
         }
 
-        if (millis()-last_time > 1000){ // Reads per second 1000/number
 
-            for(int i=0; i<objects.number; i++){
-                objects.items[i]->run(); // Update each object
-            }
-            last_time = millis(); // Update timing
+        for(int i=0; i<objects.number; i++){
+            objects.items[i]->run(); // Update each object
         }
+
     }
 }

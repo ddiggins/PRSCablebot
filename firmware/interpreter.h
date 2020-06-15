@@ -8,7 +8,6 @@
 #include <SoftwareSerial.h>
 #include <string.h>
 #include "interpreter.h"
-#include "json.h"
 #include "sensor.h"
 
 // Handles reading commands from serial and managing the interpretation of JSON into usable types

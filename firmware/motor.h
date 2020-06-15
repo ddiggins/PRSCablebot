@@ -1,8 +1,8 @@
 // Generic sensor template
 // Can be adapted to support sensors, motors, etc...
 
-#ifndef SENSOR
-#define SENSOR
+#ifndef MOTOR
+#define MOTOR
 
 // Includes
 
@@ -12,15 +12,14 @@
 // #include "interpreter.h"
 
 
+
 // An example of a generic sensor type.
 // Inherits from GenericObject and redefines methods to update parameters and run
 // Each object must have a unique id as its first attribute so it can be addressed
-class Sensor: public GenericObject{
+class Motor: public GenericObject{
 
     protected:
     Attribute enabled = {"enabled", "0"};
-    Attribute update_rate = {"updateRate", "1"};
-    int last_time = 0; // Variable for timing
 
     public:
 
@@ -31,7 +30,7 @@ class Sensor: public GenericObject{
     Attributes attributes;
     
     // Creates a Sensor object and assigns a unique id to the object
-    Sensor(String name);
+    Motor(String name);
 
     // Methods inherited from GenericObject and redefined to fit the characteristic of the object
     int run();
