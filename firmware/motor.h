@@ -9,8 +9,6 @@
 #include "object.h"
 #include <ArduinoJson.h>
 #include <string.h>
-// #include "interpreter.h"
-
 
 
 // An example of a generic sensor type.
@@ -19,13 +17,19 @@
 class Motor: public GenericObject{
 
     protected:
-    Attribute enabled = {"enabled", "0"};
+    Attribute enabled = {"enabled", "1"};
+    Attribute speed = {"speed", "1"};
+    Attribute update_rate = {"updateRate", "100"};
+    int last_time = 0; // Variable for timing
+
+    // Pulse Width Modulation pin for the motor 
+    int motorPWM = 9;
+    
 
     public:
-
     // Attributes of sensor
     Attribute id = {"id", "Generic Sensor"};
-
+    
     // Define all attributes of class
     Attributes attributes;
     

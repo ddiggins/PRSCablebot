@@ -1,7 +1,6 @@
 // Generic sensor template
 // Can be adapted to support sensors, motors, etc...
 
-// Includes
 #include <ArduinoJson.h>
 #include "sensor.h"
 #include "object.h"
@@ -25,7 +24,7 @@ int Sensor::update(JsonDocument* params){ // Same as doc
 
 int Sensor::run(){
 
-    if ((millis()-last_time) > 1000/update_rate.value.toInt()){
+    if ((millis()-last_time) > (1000/update_rate.value.toInt())){
 
         if (enabled.value.toInt()){
             Serial.print("{\"id\" : \"");

@@ -11,18 +11,17 @@
 
 
 // Test JSON: {"id" : "Sensor1", "enabled" : "1"}
+// Test for motor: {"id":"Motor1","speed":".5"}
 
 // Uncomment to use software serial
 // SoftwareSerial client(2, 3); // RX, TX
 
-//Set pin for motor motorDrive
-int motorDrive = 9;
+
 
 void setup(){
     // Initialize serial at baud 115200
     Serial.begin(115200);
-    // Set Motor speed and direction control pin.
-    pinMode(motorDrive, OUTPUT);
+    
 }
 
 void loop(){
@@ -34,18 +33,19 @@ void loop(){
 
     // Create list of sensors and structure to hold them
     typedef struct Objects{
-        const static int number = 1;
+        const static int number = 2;
         GenericObject* items[number]; // Number of sensors
     } Objects;
 
 
     // Define objects
     Sensor sensor("Sensor1");
-
+    Motor motor("Motor1");
 
     // Add objects to structure
     Objects objects;
     objects.items[0] = &sensor;
+    objects.items[1] = &motor;
 
     while(1){
 

@@ -4,12 +4,10 @@
 #ifndef SENSOR
 #define SENSOR
 
-// Includes
 
-#include "object.h"
 #include <ArduinoJson.h>
 #include <string.h>
-// #include "interpreter.h"
+#include "object.h"
 
 
 // An example of a generic sensor type.
@@ -19,7 +17,7 @@ class Sensor: public GenericObject{
 
     protected:
     Attribute enabled = {"enabled", "0"};
-    Attribute update_rate = {"updateRate", "1"};
+    Attribute update_rate = {"updateRate", "10"};
     int last_time = 0; // Variable for timing
 
     public:

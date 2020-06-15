@@ -7,8 +7,7 @@
 #include <StreamUtils.h>
 #include <SoftwareSerial.h>
 #include <string.h>
-#include "interpreter.h"
-#include "sensor.h"
+
 
 // Handles reading commands from serial and managing the interpretation of JSON into usable types
 // Use the clear() method to free memory used by ArduinoJSON

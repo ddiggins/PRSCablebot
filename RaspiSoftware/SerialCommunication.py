@@ -15,7 +15,7 @@ def start_serial():
             ser = serial.Serial('/dev/ttyACM' + str(i), timeout=.1)
             break
         except:
-            print('/dev/tty/ACM' + str(i) + " failed. Trying next port")
+            print('/dev/ttyACM' + str(i) + " failed. Trying next port")
     assert ser is not None, "Failed to connect to host (No ports open)"
     ser.baudrate = 115200
     ser.close()
