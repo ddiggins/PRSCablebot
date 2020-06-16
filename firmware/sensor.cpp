@@ -3,7 +3,6 @@
 
 #include <ArduinoJson.h>
 #include "sensor.h"
-#include "object.h"
 
 int Sensor::update(JsonDocument* params){ // Same as doc
 
