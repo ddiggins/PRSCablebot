@@ -14,7 +14,7 @@ int Interpreter::read(DynamicJsonDocument* doc){
         // read the incoming line:
         str = Serial.readStringUntil('\n');
 
-        if (str == "0"){return;} // Catches blank lines
+        if (str == "0" || str == ""){return;} // Catches blank lines
 
         // Interprets meaning with json
         DeserializationError error = deserializeJson(*doc, str);

@@ -3,6 +3,7 @@
         <div>
             <h2>Serial Send</h2>
             <form method="POST" action="/">
+                {{ form.csrf_token }}
                 <div>{{ form.json.label }} {{ form.json(size=20) }}</div>
                 {{ form.submit }}
             </form>

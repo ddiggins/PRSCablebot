@@ -27,32 +27,32 @@ int Motor::update(JsonDocument* params){ // Same as doc
 int Motor::run(){
 
     if (enabled.value.toInt()){
-        // Prints serial output
-        Serial.print("{\"id\" : \"");
-        Serial.print(id_name());
-        Serial.print("\", \"enabled\" : ");
-        Serial.print(enabled.value);
-        Serial.print(", \"speed\" : ");
-        Serial.print(speed.value);
-        Serial.println("}");
 
-        //TODO: the delay is not ideal so we should think of a better method later
+        if ((millis()-update_time) > update_delay){
+            // Prints serial output
+            Serial.print("{\"id\" : \"");
+            Serial.print(id_name());
+            Serial.print("\", \"enabled\" : ");
+            Serial.print(enabled.value);
+            Serial.print(", \"speed\" : ");
+            Serial.print(speed.value);
+            Serial.println("}");
+            update_time = millis();
+        }
+
         if ((millis()-last_time) > 20){
             int timeOn = int(speed.value.toDouble()*500.0+1500.0);
             // Serial.println(timeOn);
             last_time = millis();
             digitalWrite(motorPWM, HIGH);
+            //TODO: the delay is not ideal so we should think of a better method later
             delayMicroseconds(timeOn);
             digitalWrite(motorPWM, LOW);
         }
     }   
-    else {
-        // If enabled is false, stops motor
-        digitalWrite(motorPWM, HIGH);
-        delayMicroseconds(1500.0);
-        digitalWrite(motorPWM, LOW);
-    }
 }
+
+
 Motor::Motor(String name){
     id.value = name;
     attributes.attrs[0] = &id; // id must always come first
@@ -63,6 +63,7 @@ Motor::Motor(String name){
     // Set Motor speed and direction control pin.
     pinMode(motorPWM, OUTPUT);
 }
+
 
 String Motor::id_name(){
     return attributes.attrs[0]->value;

@@ -28,7 +28,7 @@ void loop(){
 
     // Initialize classes and define parameters
     Interpreter interpreter;
-    const int capacity = 1000; // Bytes of longest string needed
+    const int capacity = 100; // Bytes of longest string needed
     DynamicJsonDocument doc(capacity);
 
     // Create list of sensors and structure to hold them

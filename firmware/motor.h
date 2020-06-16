@@ -17,10 +17,12 @@
 class Motor: public GenericObject{
 
     protected:
-    Attribute enabled = {"enabled", "1"};
+    Attribute enabled = {"enabled", "0"};
     Attribute speed = {"speed", "1"};
     Attribute update_rate = {"updateRate", "100"};
-    int last_time = 0; // Variable for timing
+    int last_time = 0; // Variable for motor update update_rate
+    int update_delay = 1000; // Milliseconds between sensor printouts
+    int update_time = 0; // Variable for printout timing
 
     // Pulse Width Modulation pin for the motor 
     int motorPWM = 9;
