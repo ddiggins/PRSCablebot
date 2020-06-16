@@ -33,12 +33,12 @@ class GenericObject{
     public:
 
     // Defines the function of the object while in operation
-    // Actiions in run will be run each time the run section of main executes
-    virtual int run();
+    // Actions in run will be run each time the run section of main executes
+    virtual int run() = 0;
 
     // Defines how parameters should be updated based on an
     // incoming JsonDocument that matches the object's id
-    virtual int update(JsonDocument* params);
+    virtual int update(JsonDocument* params) = 0;
 
     // Returns the unique id of the object
     virtual String id_name();

@@ -10,8 +10,8 @@
 int Interpreter::read(DynamicJsonDocument* doc){
 
     if (Serial.available() > 0){
+        
         // read the incoming line:
-        // str = "0";
         str = Serial.readStringUntil('\n');
 
         if (str == "0"){return;} // Catches blank lines
