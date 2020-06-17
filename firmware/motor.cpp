@@ -1,8 +1,9 @@
-// Generic sensor template
-// Can be adapted to support sensors, motors, etc...
+// Motor Control Class
+// Runs a motor controller that outputs a pwm signal
 
 // Includes
 #include <ArduinoJson.h>
+#include <Servo.h>
 #include "object.h"
 #include "motor.h"
 
@@ -26,9 +27,10 @@ int Motor::update(JsonDocument* params) {  // Same as doc
 
 int Motor::run() {
 
-    if (enabled.value.toInt()) {
+    if ((millis()-update_time) > 1000/update_rate.value.toInt()) {
 
-        if ((millis()-update_time) > 1000/update_rate) {
+        if (enabled.value.toInt()) {
+
             // Prints serial output
             Serial.print("{\"id\" : \"");
             Serial.print(id_name());
@@ -37,18 +39,20 @@ int Motor::run() {
             Serial.print(", \"speed\" : ");
             Serial.print(speed.value);
             Serial.println("}");
-            update_time = millis();
-        }
 
-        if ((millis()-last_time) > 20 ){
-            // Updates the motor every 20 ms
+            // Update Motor speed
             int timeOn = int(speed.value.toDouble()*500.0+1500.0);
-            last_time = millis();
-            digitalWrite(motorPWM, HIGH);
-            //TODO: the delay is not ideal so we should think of a better method later
-            delayMicroseconds(timeOn);
-            digitalWrite(motorPWM, LOW);
+            if (!motor.attached()) {
+                motor.attach(motorPWM);
+            }
+            motor.writeMicroseconds(timeOn);
+
+        } else {
+            if (motor.attached()) {
+                motor.detach();
+            }
         }
+    update_time = millis();
     }
 }
 
@@ -60,9 +64,6 @@ Motor::Motor(String name) {
     attributes.attrs[2] = &update_rate;
     attributes.attrs[3] = &speed;
     attributes.number = 4;
-
-    // Set Motor speed and direction control pin.
-    pinMode(motorPWM, OUTPUT);
 }
 
 

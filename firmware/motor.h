@@ -6,6 +6,7 @@
 
 #include <string.h>
 #include <ArduinoJson.h>
+#include <Servo.h>
 #include "object.h"
 
 
@@ -24,6 +25,9 @@ class Motor: public GenericObject{
 
     // Pin for the motor
     int motorPWM = 9;
+
+    // Create a servo object for the motor
+    Servo motor;
 
  public:
     // Attributes of sensor
