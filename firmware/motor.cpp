@@ -59,6 +59,7 @@ Motor::Motor(String name){
     attributes.attrs[1] = &enabled;
     attributes.attrs[2] = &update_rate;
     attributes.attrs[3] = &speed;
+    attributes.number = 4;
 
     // Set Motor speed and direction control pin.
     pinMode(motorPWM, OUTPUT);

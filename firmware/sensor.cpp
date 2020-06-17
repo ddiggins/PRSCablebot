@@ -45,6 +45,7 @@ Sensor::Sensor(String name){
     attributes.attrs[0] = &id; // id must always come first
     attributes.attrs[1] = &enabled;
     attributes.attrs[2] = &update_rate;
+    attributes.number = 3;
 }
 
 String Sensor::id_name(){

@@ -26,8 +26,9 @@ class GenericObject{
     // A container for multiple attributes that can be iterated through
     typedef struct Attributes {
         // Gives each object attributes (change size to fit the maximum needed objects)
-        const static int number = 10;
-        Attribute* attrs[number];
+        int number = 10; // The number of attributes of a given object
+        const static int max_number = 10; // The max number of attributes an object can have
+        Attribute* attrs[max_number];
     } Attributes;
 
     public:
