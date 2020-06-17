@@ -15,12 +15,12 @@
 // Each object must have a unique id as its first attribute so it can be addressed
 class Sensor: public GenericObject{
 
-    protected:
+ protected:
     Attribute enabled = {"enabled", "0"};
     Attribute update_rate = {"updateRate", "10"};
     int last_time = 0; // Variable for timing
 
-    public:
+ public:
 
     // Attributes of sensor
     Attribute id = {"id", "Generic Sensor"};

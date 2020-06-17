@@ -14,7 +14,7 @@
 // Functions in Generic Object are not defined so the object must be inherited before use
 class GenericObject{
 
-    protected:
+ protected:
 
     // Structure that defines the key:value behavior which is compatible with JSON
     typedef struct Attribute {
@@ -26,13 +26,12 @@ class GenericObject{
     // A container for multiple attributes that can be iterated through
     typedef struct Attributes {
         // Gives each object attributes (change size to fit the maximum needed objects)
-        int number = 10; // The number of attributes of a given object
-        const static int max_number = 10; // The max number of attributes an object can have
+        int number = 10;  // The number of attributes of a given object
+        const static int max_number = 10;  // The max number of attributes an object can have
         Attribute* attrs[max_number];
     } Attributes;
 
-    public:
-
+ public:
     // Defines the function of the object while in operation
     // Actions in run will be run each time the run section of main executes
     virtual int run() = 0;
@@ -43,7 +42,6 @@ class GenericObject{
 
     // Returns the unique id of the object
     virtual String id_name();
-
 };
 
 #endif

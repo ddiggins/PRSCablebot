@@ -7,14 +7,13 @@
 #include "interpreter.h"
 
 
-int Interpreter::read(DynamicJsonDocument* doc){
+int Interpreter::read(DynamicJsonDocument* doc) {
+    if (Serial.available() > 0) {
 
-    if (Serial.available() > 0){
-        
         // read the incoming line:
         str = Serial.readStringUntil('\n');
 
-        if (str == "0" || str == ""){return;} // Catches blank lines
+        if (str == "0" || str == "") {return;}  // Catches blank lines
 
         // Interprets meaning with json
         DeserializationError error = deserializeJson(*doc, str);
@@ -27,7 +26,6 @@ int Interpreter::read(DynamicJsonDocument* doc){
         }
     }
     return 0;
-    
 }
 
 int Interpreter::clear(DynamicJsonDocument* doc) {

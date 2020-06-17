@@ -33,8 +33,8 @@ void loop(){
 
     // Create list of sensors and structure to hold them
     typedef struct Objects{
-        const static int number = 2;
-        GenericObject* items[number]; // Number of sensors
+        const static int number = 2; // Number of sensors
+        GenericObject* items[number];
     } Objects;
 
 
@@ -58,7 +58,6 @@ void loop(){
                 objects.items[i]->update(&doc); // If the id matches then update
             }
         }
-
 
         for(int i=0; i<objects.number; i++){
             objects.items[i]->run(); // Update each object
