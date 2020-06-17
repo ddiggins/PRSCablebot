@@ -41,7 +41,7 @@ def index():
         'outgoing':outgoing
     }
 
-    return render_template('index.jinja2', **templateData, form=form)
+    return render_template('serialMonitor.jinja2', **templateData, form=form)
 
 if __name__ == '__main__':
     communicator = threading.Thread(target=SerialCommunication.run_communication,\

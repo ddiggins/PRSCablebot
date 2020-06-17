@@ -1,0 +1,24 @@
+{% extends 'layout.jinja2' %}
+
+{% block content %}
+<div>
+    <h2>Serial Send</h2>
+    <form method="POST" action="/">
+        {{ form.csrf_token }}
+        <div>{{ form.json.label }} {{ form.json(size=20) }}</div>
+        {{ form.submit }}
+    </form>
+</div>
+<div>
+    <h2>Outgoing</h2>
+    {{ outgoing }}
+</div>
+<div>
+    <h2>Incoming</h2>
+    {{ incoming }}
+</div>
+<button onclick="window.location.href='/';">
+    Refresh
+</button>
+{% endblock %}
+
