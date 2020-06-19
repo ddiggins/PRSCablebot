@@ -41,6 +41,8 @@ def run_communication(input_commands, output_commands):
 
         if not input_commands.empty():
             command = input_commands.get_nowait()
+            socketio.emit('new incoming', broadcast=True)
+
         else:
             command = None
         if command is not None:

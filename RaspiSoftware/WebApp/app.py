@@ -4,6 +4,7 @@ import os
 from multiprocessing import Queue
 import threading
 from flask import Flask, render_template, url_for, redirect
+from flask_socketio import SocketIO, join_room, emit, send
 from forms import SerialSendForm
 import SerialCommunication
 
@@ -16,6 +17,9 @@ incoming_commands = Queue()
 # Secret key to use for cookies (Definitely not secure but secure enough)
 SECRET_KEY = os.urandom(32)
 app.config['SECRET_KEY'] = SECRET_KEY
+
+# Initialize Socket.io
+socketio = SocketIO(app)
 
 # Lists to display incoming and outgoing commands
 incoming = []
@@ -43,8 +47,14 @@ def index():
 
     return render_template('serialMonitor.jinja2', **templateData, form=form)
 
+@socketio.on('stop')
+def on_stop():
+    """Stops website from running"""
+    socketio.stop()
+
 if __name__ == '__main__':
     communicator = threading.Thread(target=SerialCommunication.run_communication,\
          args=(outgoing_commands, incoming_commands))
     communicator.start()
-    app.run(debug=True, host='0.0.0.0')
+    # app.run(debug=True, host='0.0.0.0')
+    socketio.run(app, debug=True, host='0.0.0.0')
