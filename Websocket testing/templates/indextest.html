@@ -1,0 +1,58 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    
+    <title> Flask Test </title>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js" integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script>
+    <script type="text/javascript" charset="utf-8">
+    var socket = io();
+
+    //verify out websocket connection is established
+    socket.on('connect', function() {
+        socket.emit('my event', {data: 'I\'m connected!'});
+    });
+
+    socket.on('refresh')
+    def on_refresh():
+        """updates value on page"""
+        window.location.reload(); 
+    
+ 
+
+</script>
+</head>
+
+
+
+<body>
+    <h1>Test for Websocket!</h1>
+    <p>Some sample code to make sure Flask-SocketIO works...</p>
+    <button onclick="refresh()">refresh</button>
+    <button onclick="stopGame()">Stop Game</button>
+
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
+    <script type="text/javascript" charset="utf-8">
+      var socket = io.connect('http://' + document.domain + ':' + location.port);
+      // verify our websocket connection is established
+      socket.on('connect', function() {
+          console.log('Websocket connected!');
+      });
+      // message handler for the 'join_room' channel
+      socket.on('join_room', function(msg) {
+          console.log(msg);
+      });
+
+      function refresh() {
+        console.log('refreshing page...');
+        socket.emit('refresh');
+      }
+
+      // stop game on click
+      function stopGame() {
+        console.log('Stopping game...');
+        socket.emit('stop');
+      }
+    </script>
+  
+</body>
+</html>

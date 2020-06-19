@@ -4,6 +4,8 @@
 import time
 from multiprocessing import Queue
 import serial
+from flask_socketio import SocketIO, join_room, emit, send
+
 
 def start_serial():
     """ Checks for serial devices on ACM ports and connects to the
@@ -37,11 +39,14 @@ def run_communication(input_commands, output_commands):
         Uses two queues to communicate with other processes """
 
     ser = start_serial()
+    # socketio = SocketIO()
+    # socketio = SocketIO(message_queue='redis://')
+
     while 1:
 
         if not input_commands.empty():
             command = input_commands.get_nowait()
-            socketio.emit('new incoming', broadcast=True)
+            # socketio.emit('new incoming', broadcast=True, namespace='/test')
 
         else:
             command = None
