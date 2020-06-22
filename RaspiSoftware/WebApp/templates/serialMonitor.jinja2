@@ -1,6 +1,31 @@
 {% extends 'layout.jinja2' %}
 
 {% block content %}
+
+<!-- Set up Websocket on client -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
+<script type="text/javascript" charset="utf-8">
+    // Client side javascript.
+    $(document).ready(function(){
+        // Establish websocket connection and verify connection.
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+        socket.on('connect', function(){
+            console.log('Websocket connected!');
+        });
+        // Listens to "new incoming" message and updates incoming value.
+        socket.on('new incoming', function(json){
+            console.log('New incoming detected, refreshing page');
+            // $('incoming').text(json)
+            $("#incoming").load(location.href + " #incoming");
+            
+            // location.reload();
+        });
+    });
+
+
+</script>
+
 <div>
     <h2>Serial Send</h2>
     <form method="POST" action="/">
@@ -9,13 +34,16 @@
         {{ form.submit }}
     </form>
 </div>
-<div>
+
+<div id="outgoing">
     <h2>Outgoing</h2>
     {{ outgoing }}
 </div>
-<div>
+
+<div id="incoming">
     <h2>Incoming</h2>
     {{ incoming }}
+    <!-- <div id="incoming"></div> -->
 </div>
 <button onclick="window.location.href='/';">
     Refresh
