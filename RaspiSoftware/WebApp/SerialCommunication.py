@@ -1,10 +1,12 @@
 """Module to communicate with a serial device and use and interpret JSON
    Intended to be run concurrently with another process which uses the data """
 
+import sys
 import time
 from multiprocessing import Queue
 import serial
 from flask_socketio import SocketIO, join_room, emit, send
+from threading import Lock
 
 
 def start_serial():
@@ -28,6 +30,7 @@ def send_command(ser, command):
     """ Sends a command string over serial """
     ser.write((command + "\r\n").encode())
     print("writing Command")
+    print("Command written: " + (command + "\r\n"))
 
 def receive_command(ser):
     """ Reads one line from serial """
@@ -39,13 +42,17 @@ def receive_command(ser):
         print ("read failed")
         return ""
 
-def run_communication(input_commands, output_commands):
+def run_communication(input_commands, output_commands, lock):
     """ Runs a loop which reads and writes serial commands.
         Uses two queues to communicate with other processes """
 
     ser = start_serial()
 
+    f = open("log1.txt", "w")
+
     while 1:
+
+        lock.acquire()
 
         if not input_commands.empty():
             command = input_commands.get_nowait()
@@ -56,12 +63,17 @@ def run_communication(input_commands, output_commands):
             send_command(ser, command)
 
         response = receive_command(ser)
+        print("Response is:" + str(response))
+        f.write("Response is:" + str(response))
         output_commands.put(response)
+        lock.release()
 
         time.sleep(.005)
+
 
 
 if __name__ == "__main__":
     outgoing_commands = Queue()
     incoming_commands = Queue()
-    run_communication(incoming_commands, outgoing_commands)
+    lock = Lock()
+    run_communication(incoming_commands, outgoing_commands, lock)

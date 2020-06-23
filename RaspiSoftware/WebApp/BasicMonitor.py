@@ -1,7 +1,7 @@
 """ A basic serial monitor to interact with an arduino """
 
 import threading
-from multiprocessing import Queue
+from multiprocessing import Queue, Lock, Process
 import select
 import sys
 import SerialCommunication
@@ -29,7 +29,8 @@ def monitor(outgoing_queue, incoming_queue):
 if __name__ == "__main__":
     outgoing_commands = Queue()
     incoming_commands = Queue()
-    communicator = threading.Thread(target=SerialCommunication.run_communication,\
-        args=(outgoing_commands, incoming_commands))
+    lock = Lock()
+    communicator = Process(target=SerialCommunication.run_communication,\
+        args=(outgoing_commands, incoming_commands, lock))
     communicator.start()
     monitor(outgoing_commands, incoming_commands)
