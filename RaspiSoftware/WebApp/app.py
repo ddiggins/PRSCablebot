@@ -10,6 +10,7 @@ from flask_socketio import SocketIO, join_room, emit, send
 from forms import SerialSendForm
 import SerialCommunication
 from gevent import monkey
+import json
 
 monkey.patch_all()
 
@@ -34,14 +35,36 @@ def check_incoming(incoming_commands):
         if not incoming_commands.empty():
             line = incoming_commands.get_nowait() #
             incoming.append(line)
-            print("incoming message", flush=True)
+            # print("incoming message", flush=True)
             socketio.emit('new incoming', line, json = True)
-            print("emitted?", flush=True)
+            # print("emitted?", flush=True)
 
         time.sleep(0) # Yield
 # What I want: If there is a new incoming, emit that new incoming and then the 
 # html can just read it and put it in a table 
-        
+
+@socketio.on('new outgoing')
+def send_outgoing(outgoing_json):
+    """Adds outgoing message recieved from the slider to the outgoing queue"""
+    print('received outgoing json: ' + str(outgoing_json), flush=True)
+    outgoing_commands.put(outgoing_json)
+    outgoing.append(outgoing_json)
+
+@socketio.on('enable motor')
+def enable_motor():
+    """ Enables motor by toggling json value """
+    start_motor = '{"id" : "Motor1", "enabled" : "1"}'
+    outgoing_commands.put(start_motor)
+    outgoing.append(start_motor)
+
+@socketio.on('disable motor')
+def disable_motor():
+    """Disables motor"""
+    stop_motor = '{"id" : "Motor1", "enabled" : "0"}'
+    outgoing_commands.put(stop_motor)
+    outgoing.append(stop_motor)
+
+
 @app.route('/', methods=('GET', 'POST'))
 def index():
     """ Creates webpage. Runs every time the page is refreshed """
@@ -72,10 +95,6 @@ def index():
     }
 
     return render_template('serialMonitor.jinja2', **templateData, form=form)
-
-@socketio.on('stop')
-def on_stop():
-    """Stops website from running"""
 
 if __name__ == '__main__':
     # Queues for serial commands
