@@ -12,8 +12,11 @@ import SerialCommunication
 from gevent import monkey
 import json
 
-monkey.patch_all()
+import logging
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
 
+monkey.patch_all()
 app = Flask(__name__)
 
 # Secret key to use for cookies (Definitely not secure but secure enough)
@@ -21,38 +24,26 @@ SECRET_KEY = os.urandom(32)
 app.config['SECRET_KEY'] = SECRET_KEY
 
 # Initialize Socket.io
-# socketio = SocketIO(app, message_queue='redis://')
 socketio = SocketIO(app)
 
 # Lists to display incoming and outgoing commands
 incoming = []
 outgoing = []
 
-# Function that checks whether there is new incoming serial messages.
-# Will run continuously as a background task.
 def check_incoming(incoming_commands):
+    """Function that checks whether there are new incoming serial messages. 
+    Will run continuously as a background task."""
     while 1:
         if not incoming_commands.empty():
-            line = incoming_commands.get_nowait() #
+            #fetches message from queue and deletes that line.
+            line = incoming_commands.get_nowait()
             incoming.append(line)
-            # print("incoming message", flush=True)
             socketio.emit('new incoming', line, json = True)
-            # print("emitted?", flush=True)
-
-        time.sleep(0) # Yield
-# What I want: If there is a new incoming, emit that new incoming and then the 
-# html can just read it and put it in a table 
-
-@socketio.on('new outgoing')
-def send_outgoing(outgoing_json):
-    """Adds outgoing message recieved from the slider to the outgoing queue"""
-    print('received outgoing json: ' + str(outgoing_json), flush=True)
-    outgoing_commands.put(outgoing_json)
-    outgoing.append(outgoing_json)
+        time.sleep(1) # Yield
 
 @socketio.on('enable motor')
 def enable_motor():
-    """ Enables motor by toggling json value """
+    """ Enables motor by sending json value """
     start_motor = '{"id" : "Motor1", "enabled" : "1"}'
     outgoing_commands.put(start_motor)
     outgoing.append(start_motor)
@@ -64,6 +55,13 @@ def disable_motor():
     outgoing_commands.put(stop_motor)
     outgoing.append(stop_motor)
 
+@socketio.on('new motor speed')
+def update_motor_speed(data):
+    """Changes the motor speed to value dictated by the slider."""
+    slider_speed = json.dumps({"id" : "Motor1", "speed": data})
+    outgoing_commands.put(slider_speed)
+    outgoing.append(slider_speed)
+
 
 @app.route('/', methods=('GET', 'POST'))
 def index():
@@ -71,18 +69,7 @@ def index():
     form = SerialSendForm()
     print("web page loading")
 
-    # Create thread to run check_incoming to detect incoming messages
-    # global thread
-    # print("thread is: " + str(thread))
-    # if thread is None:
-    #     print("Thread starting")
-    #     thread = threading.Thread(target=check_incoming, args=([incoming_commands]))
-    #     thread.start()
-
-    # while not incoming_commands.empty():  # Read all commands in the incoming queue
-    #     line = incoming_commands.get_nowait()
-    #     incoming.append(line)
-
+    # Submit motor command through form
     if form.validate_on_submit():
         # Send value to queue
         json = form.json.data

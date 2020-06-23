@@ -7,19 +7,21 @@
 <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
 <script type="text/javascript" charset="utf-8">
     $(document).ready(function(){
-        // Establish websocket connection and verify connection.
+        // Sending a connect request to the server.
         var socket = io.connect('http://' + document.domain + ':' + location.port);
+        //Verify that connection has been established
         socket.on('connect', function(){
             console.log('Websocket connected!');
         });
+      
         // Listens to "new incoming" message and updates incoming value.
-        socket.on('new incoming', function(json){
-            console.log('New incoming detected, refreshing page');
+        socket.on('new incoming', function(data){
+            // console.log('New incoming detected, refreshing page');
             // $('incoming').text(json)
             
             // Reloads just the div with the incoming messages. 
             $("#incoming").load(location.href + " #incoming");
-            
+            console.log("incoming message:", data.toString())
             // location.reload();
         });
     });
@@ -32,16 +34,10 @@
 <!-- Motor on/off toggle -->
 <input onclick="toggle_motor()" type="button" value="Enable Motor" id="motorStatus"></input>
 
-
-<label class="switch">
-    <input type="checkbox">
-    <span class="slider round"></span>
-</label>
-
 <!-- Create slider -->
 <div class="slidecontainer">
     <!-- <input type="range" min="-1" max="1" value="0" step="0.1" class="slider" id="motorSpeed" onmouseup="send_motor_command()" ontouchend="send_motor_command()"> -->
-    <input type="range" min="-1" max="1" value="0" step="0.1" class="slider" id="motorSpeed" onchange="send_motor_command()">
+    <input type="range" min="-1" max="1" value="0" step="0.1" class="slider" id="motorSpeed" onchange="send_motor_speed()">
     <p>Value: <span id="demo"></span></p>
 </div>
 
@@ -53,14 +49,13 @@
     // Update the current slider value (each time you drag the slider handle)
     slider.oninput = function() {
         output.innerHTML = this.value;
-        // socket.send('new outgoing command', {"id" : "Sensor1", "enabled" : "1", "speed": this.value} , json = True)
     }
 
-    function send_motor_command(){
-        var elem = document.getElementById("motorSpeed");
-        var motor_speed_command = {"id" : "Motor1", "speed": elem.value}
+    function send_motor_speed(){
+        var slider = document.getElementById("motorSpeed");
+        // var motor_speed = {speed : slider.value};
         console.log('Sending motor speed!');
-        socket.send('new outgoing', motor_speed_command , json = True);
+        socket.emit('new motor speed', slider.value);
     }
 
     function toggle_motor(){

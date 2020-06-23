@@ -13,7 +13,7 @@ def start_serial():
     for i in range(9):
         ser = None
         try:
-            ser = serial.Serial('/dev/ttyACM' + str(i), timeout=.1)
+            ser = serial.Serial('/dev/ttyACM' + str(i), timeout=.5)
             break
         except:  # All exceptions are checked against assert below
             print('/dev/ttyACM' + str(i) + " failed. Trying next port")
@@ -31,8 +31,13 @@ def send_command(ser, command):
 
 def receive_command(ser):
     """ Reads one line from serial """
-    output = ser.readline().decode()
-    return output
+    try:
+        output = ser.readline().decode()
+        return output
+
+    except serial.SerialException:
+        print ("read failed")
+        return ""
 
 def run_communication(input_commands, output_commands):
     """ Runs a loop which reads and writes serial commands.
