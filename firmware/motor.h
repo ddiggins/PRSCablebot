@@ -19,14 +19,12 @@ class Motor: public GenericObject{
     Attribute enabled = {"enabled", "0"};
     Attribute speed = {"speed", "1"};
     Attribute update_rate = {"updateRate", "1"};
-    int last_time = 0;  // Variable for motor update update_rate
+    unsigned long last_time = 0;  // Variable for motor update update_rate
     int update_delay = 1000;  // Milliseconds between sensor printouts
-    int update_time = 0;  // Variable for printout timing
+    unsigned long update_time = 0;  // Variable for printout timing
 
-    // Pin for the motor and stop
+    // Pin for the motor
     int motorPWM = 9;
-    int stop_pin = 7;
-    int stopped = 0; // Whether an estop command was issued
 
     // Create a servo object for the motor
     Servo motor;

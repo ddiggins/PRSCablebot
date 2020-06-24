@@ -18,7 +18,7 @@ class Sensor: public GenericObject{
  protected:
     Attribute enabled = {"enabled", "0"};
     Attribute update_rate = {"updateRate", "10"};
-    int last_time = 0; // Variable for timing
+    unsigned long last_time = 0; // Variable for timing
 
  public:
 

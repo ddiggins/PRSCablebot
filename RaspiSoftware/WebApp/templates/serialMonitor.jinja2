@@ -15,6 +15,7 @@
         // var motor_speed = {speed : slider.value};
         console.log('Sending motor speed!');
         socket.emit('new motor speed', slider.value);
+        $("#outgoing").load(location.href + " #outgoing");
     }
 
     function toggle_motor(){
