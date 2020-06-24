@@ -63,13 +63,14 @@ def run_communication(input_commands, output_commands, lock):
             send_command(ser, command)
 
         response = receive_command(ser)
-        print("Response is:" + str(response))
-        f.write("Response is:" + str(response))
-        output_commands.put(response)
+
+        if response != "":
+            print("Response is:" + str(response))
+            f.write("Response is:" + str(response))
+            output_commands.put(response)
         lock.release()
 
         time.sleep(.005)
-
 
 
 if __name__ == "__main__":

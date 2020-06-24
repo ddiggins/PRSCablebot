@@ -18,7 +18,10 @@ import json
 import ssl 
 import logging
 
+# Initializes flask app
 app = Flask(__name__)
+
+# Suppresses terminal outputs of GET and POST. Only allows error messages.
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
 
@@ -32,8 +35,8 @@ socketio = SocketIO(app)
 # Lists to display incoming and outgoing commands
 incoming = []
 outgoing = []
+
 lock = Lock()
-started = 0
 
 def check_incoming(incoming_commands, lock):
     """Function that checks whether there are new incoming serial messages. 
@@ -41,14 +44,12 @@ def check_incoming(incoming_commands, lock):
     while 1:
         lock.acquire()
         if not incoming_commands.empty():
-            #fetches message from queue and deletes that line.
             # time.sleep(.1)
             line = incoming_commands.get_nowait()
-            # print("json incoming", line)
             incoming.append(line)
             socketio.emit('new incoming', line, json = True)
         lock.release()
-        time.sleep(.05) # Yield
+        time.sleep(1) # Yield
 
 @socketio.on('enable motor')
 def enable_motor():
@@ -80,7 +81,7 @@ def index():
 
     # Submit motor command through form
     if form.validate_on_submit():
-        # Send value to queue
+        # Send value to outgoing queue
         json = form.json.data
         outgoing_commands.put(json)
         outgoing.append(json)
@@ -95,34 +96,18 @@ def index():
 
 if __name__ == '__main__':
 
-    if started == 0:
     # Queues for serial commands
-        outgoing_commands = Queue()
-        incoming_commands = Queue()
-        print("MAIN STARTED")
-        print("Started is: " + str(started) + "At Beginning")
-        # Starts thread that runs serial communication.
-        communicator = Process(target=SerialCommunication.run_communication,\
-             args=(outgoing_commands, incoming_commands, lock))
-        communicator.start()
-        # # Starts background task that continually checks for incoming messages.
-        socketio.start_background_task(check_incoming, incoming_commands, lock)
-        # socketio.start_background_task(SerialCommunication.run_communication, outgoing_commands, incoming_commands, lock)
-        # background = Process(target=check_incoming,\
-        #      args=(incoming_commands, lock))
-        time.sleep(2)
+    outgoing_commands = Queue()
+    incoming_commands = Queue()
+    
+    # Starts thread that runs serial communication.
+    communicator = Process(target=SerialCommunication.run_communication,\
+            args=(outgoing_commands, incoming_commands, lock))
+    communicator.start()
 
-        outgoing_commands.put('{"id" : "Motor1", "enabled" : "1"}')
+    # Starts background task that continually checks for incoming messages.
+    socketio.start_background_task(check_incoming, incoming_commands, lock)
 
-        print("sleeping")
-        time.sleep(5)
-        print("Starting App")
-
-        started = 1
-        print("Started is: " + str(started))
-        socketio.run(app, debug=False, host='0.0.0.0', use_reloader=False)
-        # app.run(debug=False, host='0.0.0.0', use_reloader=False)
-
-
-        print("MAIN IS STILL RUNNING")
-
+    # Runs app wrapped in Socket.io. "debug" and "use_reloader" need to be false 
+    # or else Flask creates a child process and re-runs main. 
+    socketio.run(app, debug=False, host='0.0.0.0', use_reloader=False)
