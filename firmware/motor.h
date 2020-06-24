@@ -25,6 +25,8 @@ class Motor: public GenericObject{
 
     // Pin for the motor
     int motorPWM = 9;
+    int stop_pin = 7;
+    int stopped = 0;
 
     // Create a servo object for the motor
     Servo motor;
