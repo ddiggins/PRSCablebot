@@ -29,7 +29,12 @@ int Motor::run() {
 
     if ((millis()-update_time) > 1000/update_rate.value.toInt()) {
 
-        if (enabled.value.toInt()) {
+        // Emergency stop
+        if (!digitalRead(stop_pin)) {
+            stopped = 1;
+        }
+
+        if (enabled.value.toInt() && !stopped) {
 
             // Prints serial output
             Serial.print("{\"id\" : \"");
@@ -64,6 +69,7 @@ Motor::Motor(String name) {
     attributes.attrs[2] = &update_rate;
     attributes.attrs[3] = &speed;
     attributes.number = 4;
+    pinMode(stop_pin, INPUT_PULLUP);
 }
 
 
