@@ -10,8 +10,8 @@
 
     <!-- Create slider -->
     <div class="slidecontainer">
-        <input type="range" min="-1" max="1" value="0" step="0.1" class="slider" id="motorSpeed" onchange="send_motor_speed()">
-        <p>Value: <span id="display"></span></p>
+        <input type="range" min="-1" max="1" value="0" step="0.1" class="slider" id="motorSpeed" oninput="updateSlider()" onchange="send_motor_speed()">
+        <p>Value: <span id="display" onload="updateSlider()"></span></p>
     </div>
 </div>
 
@@ -42,74 +42,13 @@
 
 </div>
 
-<table class = "table" id="currentStatus">
+<table class = "table" id="statusTable">
     <tr>
       <td>Id</td>
       <td>Data</td>
     </tr>
 </table>
 
-<script>
-    
-    // Displays the current slider value hw
-    var slider = document.getElementById("motorSpeed");
-    slider.oninput = function() {
-        let display = document.getElementById("display")
-        display.innerHTML = this.value;
-    }
-    
-    // Listens to "new incoming" message and updates incoming value.
-    // socket.on('new incoming', function(data){
-    // console.log("incoming message:", data.toString())
-    // document.getElementById("incoming").innerHTML = data.toString();
-    // });                 
-
-    socket.on('update', function(data){
-        console.log("incoming message:", data.toString())
-        // object_id = data["id"]
-        
-        // var table = document.getElementById("statusTable");
-        // var row = table.insertRow(-1); //Inserts row at te bottow of the table
-        // var cell1 = row.insertCell(0);
-        // var cell2 = row.insertCell(1);
-        // cell1.innerHTML = object_id.toString();
-        // cell2.innerHTML = data.toString();
-        // Refreshes the incoming section of the webpage.
-        document.getElementById("incoming").innerHTML = data.toString();
-    });          
-
-    function send_motor_speed() {
-        /*  send motor speed to python via Websockets
-            called by changing slider value */
-        var slider = document.getElementById("motorSpeed");
-        console.log('Sending motor speed!');
-        socket.emit('new motor speed', slider.value);
-        $("#outgoing").load(location.href + " #outgoing");
-    }
-
-    function toggle_motor(){
-        var elem = document.getElementById("motorStatus");
-        if (elem.value=="Enable Motor"){
-            socket.emit('enable motor');
-            elem.value = "Disable Motor";
-        }
-        else{
-            socket.emit('disable motor');
-            elem.value = "Enable Motor";
-
-        } 
-        $("#outgoing").load(location.href + " #outgoing");
-    }   
-    </script>
-<!-- 
-<script src="{{url_for('static', filename='javascript/socket.js')}}"></script>
- -->
-
-
-
-
-
-
+<script type="text/javascript" src="{{url_for('static', filename='javascript/socket.js')}}"></script>
 
 {% endblock %}
-

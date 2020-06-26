@@ -40,19 +40,6 @@ outgoing = []
 # A mutex to protect the incoming queue
 lock = Lock()
 
-def check_incoming(incoming_commands, lock):
-    """Function that checks whether there are new incoming serial messages. 
-    Will run continuously as a background task."""
-    while 1:
-        lock.acquire()
-        if not incoming_commands.empty():
-            # time.sleep(.1)
-            line = incoming_commands.get_nowait()
-            incoming.append(line)
-            socketio.emit('update', line, json = True)
-        lock.release()
-        time.sleep(.05)
-
 @socketio.on('enable motor')
 def enable_motor():
     """ Enables motor by sending json value """

@@ -1,40 +1,61 @@
-// $(document).ready(function(){
-//     //Sending a connect request to the server.
-//     var socket = io.connect('http://' + document.domain + ':' + location.port);
-//     //Verify that connection has been established
-//     socket.on('connect', function(){
-//         console.log('Websocket connected!');
-//     });
-    
-//     // Listens to "new incoming" message and updates incoming value.
-//     socket.on('new incoming', function(data){
-//         console.log("incoming message:", data.toString())
-//         document.getElementById("incoming").innerHTML = data.toString();
+/* Setup Socket.io Connector */
+// Sending a connect request to the server.
+var socket = io.connect('http://' + document.domain + ':' + location.port);
+// Verify that connection has been established
+socket.on('connect', function(){
+    console.log('Websocket connected!');
+});
+              
+socket.on('update', function(data){
+/*  Update incoming/outgoing display 
+ on command from Websockets*/
+var message = JSON.parse(data);
+console.log("incoming message:", data.toString());
+console.log("id: ", message.id.toString());
 
-//     });
-// });
+// Refreshes the incoming section of the webpage.
+document.getElementById("incoming").innerHTML = data.toString();
 
-var slider = document.getElementById("motorSpeed");
-var output = document.getElementById("display");
-output.innerHTML = slider.value; // Display the default slider value
+//Adds section to table
+var table = document.getElementById("statusTable");
+var row = table.insertRow(-1); //Inserts row at the bottom of the table
+var cell1 = row.insertCell(0);
+var cell2 = row.insertCell(1);
+cell1.innerHTML = message.id.toString();
+cell2.innerHTML = data.toString();
 
-// Update the current slider value (each time you drag the slider handle)
-slider.oninput = function() {
-    output.innerHTML = this.value;
+var i = 0;
+
+$("#statusTable tr").each(function() {
+    var val1 = $(table.rows[i].cells[0]).text();
+    i++;
+});
+
+
+    $("tr.item").each(function() {
+        var quantity1 = $(this).find("input.name").val(),
+            quantity2 = $(this).find("input.id").val();
+    });
+});          
+
+var updateSlider = function() {
+    /* Update slider value */
+    let slider = document.getElementById("motorSpeed");
+    let display = document.getElementById("display");
+    display.innerHTML = slider.value;
 }
 
-
- 
-
-function send_motor_speed(){
+var send_motor_speed = function() {
+    /*  send motor speed to python via Websockets
+        called by changing slider value */
     var slider = document.getElementById("motorSpeed");
-    // var motor_speed = {speed : slider.value};
     console.log('Sending motor speed!');
     socket.emit('new motor speed', slider.value);
     $("#outgoing").load(location.href + " #outgoing");
 }
 
-function toggle_motor(){
+var toggle_motor = function(){
+    /*  send enable or disable command to flask */
     var elem = document.getElementById("motorStatus");
     if (elem.value=="Enable Motor"){
         socket.emit('enable motor');
@@ -43,13 +64,6 @@ function toggle_motor(){
     else{
         socket.emit('disable motor');
         elem.value = "Enable Motor";
-
     } 
     $("#outgoing").load(location.href + " #outgoing");
-
 }
-
-socket.on('update', function(data){
-    console.log("incoming message:", data.toString())
-    document.getElementById("incoming").innerHTML = data.toString();
-}); 
