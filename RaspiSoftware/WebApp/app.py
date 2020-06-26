@@ -17,6 +17,7 @@ import SerialCommunication
 import json
 import ssl 
 import logging
+import logger
 
 # Initializes flask app
 app = Flask(__name__)
@@ -36,6 +37,7 @@ socketio = SocketIO(app)
 incoming = []
 outgoing = []
 
+# A mutex to protect the incoming queue
 lock = Lock()
 
 def check_incoming(incoming_commands, lock):
@@ -47,9 +49,9 @@ def check_incoming(incoming_commands, lock):
             # time.sleep(.1)
             line = incoming_commands.get_nowait()
             incoming.append(line)
-            socketio.emit('new incoming', line, json = True)
+            socketio.emit('update', line, json = True)
         lock.release()
-        time.sleep(1) # Yield
+        time.sleep(.05)
 
 @socketio.on('enable motor')
 def enable_motor():
@@ -106,7 +108,8 @@ if __name__ == '__main__':
     communicator.start()
 
     # Starts background task that continually checks for incoming messages.
-    socketio.start_background_task(check_incoming, incoming_commands, lock)
+    logger = logger.Logger(incoming_commands, outgoing_commands, lock, socketio, "mainLog.txt")
+    socketio.start_background_task(logger.run_logger)
 
     # Runs app wrapped in Socket.io. "debug" and "use_reloader" need to be false 
     # or else Flask creates a child process and re-runs main. 

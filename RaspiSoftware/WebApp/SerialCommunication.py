@@ -48,8 +48,6 @@ def run_communication(input_commands, output_commands, lock):
 
     ser = start_serial()
 
-    f = open("log1.txt", "w")
-
     while 1:
 
         lock.acquire()
@@ -66,7 +64,6 @@ def run_communication(input_commands, output_commands, lock):
 
         if response != "":
             print("Response is:" + str(response))
-            f.write("Response is:" + str(response))
             output_commands.put(response)
         lock.release()
 

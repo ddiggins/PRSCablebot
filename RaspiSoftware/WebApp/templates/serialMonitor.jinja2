@@ -2,17 +2,86 @@
 
 {% block content %}
 
-<!-- Javascript for websocket functions -->
-<script>
-    // Listens to "new incoming" message and updates incoming value.
-    socket.on('new incoming', function(data){
-    console.log("incoming message:", data.toString())
-    document.getElementById("incoming").innerHTML = data.toString();
-    });                 
+<!-- Motor Control Interface -->
+<div id="motorControl">
+    <!-- Create button -->
+    <h1>Motor Control</h1>
+    <input onclick="toggle_motor()" type="button" value="Enable Motor" id="motorStatus"></input>
 
-    function send_motor_speed(){
+    <!-- Create slider -->
+    <div class="slidecontainer">
+        <input type="range" min="-1" max="1" value="0" step="0.1" class="slider" id="motorSpeed" onchange="send_motor_speed()">
+        <p>Value: <span id="display"></span></p>
+    </div>
+</div>
+
+<!-- Refresh page button -->
+<button onclick="window.location.href='/';">
+    Refresh
+</button>
+
+<!-- Serial Send (Line by Line) -->
+<div>
+    <h2>Serial Send</h2>
+    <form method="POST" action="/">
+        {{ form.csrf_token }}
+        <div>{{ form.json.label }} {{ form.json(size=20) }}</div>
+        {{ form.submit }}
+    </form>
+</div>
+
+<!-- Incoming/Outgoing Display -->
+<div id="outgoing">
+    <h2>Outgoing</h2>
+    {{ outgoing }}
+</div>
+<div>
+    <h2>Incoming</h2>
+    <!-- {{ incoming }} -->
+    <div  id="incoming"> </div>
+
+</div>
+
+<table class = "table" id="currentStatus">
+    <tr>
+      <td>Id</td>
+      <td>Data</td>
+    </tr>
+</table>
+
+<script>
+    
+    // Displays the current slider value hw
+    var slider = document.getElementById("motorSpeed");
+    slider.oninput = function() {
+        let display = document.getElementById("display")
+        display.innerHTML = this.value;
+    }
+    
+    // Listens to "new incoming" message and updates incoming value.
+    // socket.on('new incoming', function(data){
+    // console.log("incoming message:", data.toString())
+    // document.getElementById("incoming").innerHTML = data.toString();
+    // });                 
+
+    socket.on('update', function(data){
+        console.log("incoming message:", data.toString())
+        // object_id = data["id"]
+        
+        // var table = document.getElementById("statusTable");
+        // var row = table.insertRow(-1); //Inserts row at te bottow of the table
+        // var cell1 = row.insertCell(0);
+        // var cell2 = row.insertCell(1);
+        // cell1.innerHTML = object_id.toString();
+        // cell2.innerHTML = data.toString();
+        // Refreshes the incoming section of the webpage.
+        document.getElementById("incoming").innerHTML = data.toString();
+    });          
+
+    function send_motor_speed() {
+        /*  send motor speed to python via Websockets
+            called by changing slider value */
         var slider = document.getElementById("motorSpeed");
-        // var motor_speed = {speed : slider.value};
         console.log('Sending motor speed!');
         socket.emit('new motor speed', slider.value);
         $("#outgoing").load(location.href + " #outgoing");
@@ -31,57 +100,14 @@
         } 
         $("#outgoing").load(location.href + " #outgoing");
     }   
-</script>
-
-
-<div id="motorControl">
-    <h1>Motor Control</h1>
-    <!-- Motor on/off toggle -->
-    <input onclick="toggle_motor()" type="button" value="Enable Motor" id="motorStatus"></input>
-
-    <!-- Create slider -->
-    <div class="slidecontainer">
-        <!-- <input type="range" min="-1" max="1" value="0" step="0.1" class="slider" id="motorSpeed" onmouseup="send_motor_command()" ontouchend="send_motor_command()"> -->
-        <input type="range" min="-1" max="1" value="0" step="0.1" class="slider" id="motorSpeed" onchange="send_motor_speed()">
-        <p>Value: <span id="display"></span></p>
-    </div>
-
-    <script>
-        var slider = document.getElementById("motorSpeed");
-        var output = document.getElementById("display");
-        output.innerHTML = slider.value;
-
-        // Displays the current slider value hw
-        slider.oninput = function() {
-            output.innerHTML = this.value;
-        }
     </script>
-</div>
+<!-- 
+<script src="{{url_for('static', filename='javascript/socket.js')}}"></script>
+ -->
 
-<button onclick="window.location.href='/';">
-    Refresh
-</button>
 
-<div>
-    <h2>Serial Send</h2>
-    <form method="POST" action="/">
-        {{ form.csrf_token }}
-        <div>{{ form.json.label }} {{ form.json(size=20) }}</div>
-        {{ form.submit }}
-    </form>
-</div>
 
-<div id="outgoing">
-    <h2>Outgoing</h2>
-    {{ outgoing }}
-</div>
 
-<div>
-    <h2>Incoming</h2>
-    <!-- {{ incoming }} -->
-    <div  id="incoming"> </div>
-
-</div>
 
 
 

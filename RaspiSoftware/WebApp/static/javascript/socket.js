@@ -24,12 +24,14 @@ slider.oninput = function() {
 }
 
 
+ 
 
 function send_motor_speed(){
     var slider = document.getElementById("motorSpeed");
     // var motor_speed = {speed : slider.value};
     console.log('Sending motor speed!');
     socket.emit('new motor speed', slider.value);
+    $("#outgoing").load(location.href + " #outgoing");
 }
 
 function toggle_motor(){
@@ -44,4 +46,10 @@ function toggle_motor(){
 
     } 
     $("#outgoing").load(location.href + " #outgoing");
+
 }
+
+socket.on('update', function(data){
+    console.log("incoming message:", data.toString())
+    document.getElementById("incoming").innerHTML = data.toString();
+}); 

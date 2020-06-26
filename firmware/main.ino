@@ -18,8 +18,6 @@
 // Uncomment to use software serial
 // SoftwareSerial client(2, 3); // RX, TX
 
-
-
 void setup(){
     // Initialize serial at baud 115200
     Serial.begin(115200);
