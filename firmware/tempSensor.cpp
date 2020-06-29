@@ -1,10 +1,10 @@
-// Generic sensor template
-// Can be adapted to support sensors, motors, etc...
+// Firmware for the Si7201 temp/humidity sensor
 
 #include <ArduinoJson.h>
-#include "sensor.h"
+#include <Adafruit_Si7021.h>
+#include "tempSensor.h"
 
-int Sensor::update(JsonDocument* params){ // Same as doc
+int TempSensor::update(JsonDocument* params){ // Same as doc
 
     // Interpret the document to an indexable object (JsonObject is a reference to the document not a copy)
     JsonObject obj = (*params).as<JsonObject>();
@@ -21,7 +21,7 @@ int Sensor::update(JsonDocument* params){ // Same as doc
 }
 
 
-int Sensor::run(){
+int TempSensor::run(){
 
     if ((millis()-last_time) > (1000/update_rate.value.toInt())){
 
@@ -30,8 +30,10 @@ int Sensor::run(){
             Serial.print(id_name());
             Serial.print("\", \"enabled\" : ");
             Serial.print(enabled.value);
-            Serial.print(", \"value\" : ");
-            Serial.print(4); // Arbitrary value replace with real output
+            Serial.print(", \"temperature\" : ");
+            Serial.print(sensor.readTemperature()); 
+            Serial.print(", \"humidity\" : ");
+            Serial.print(sensor.readHumidity()); 
             Serial.println("}");
         }
         last_time = millis();
@@ -40,14 +42,19 @@ int Sensor::run(){
 }
 
 
-Sensor::Sensor(String name){
+TempSensor::TempSensor(String name){
     id.value = name;
     attributes.attrs[0] = &id; // id must always come first
     attributes.attrs[1] = &enabled;
     attributes.attrs[2] = &update_rate;
     attributes.number = 3;
+
+    // Initialize sensor
+    if (!sensor.begin()){
+        Serial.println("Error: Unable to find temp/humidity sensor");
+    }
 }
 
-String Sensor::id_name(){
+String TempSensor::id_name(){
     return attributes.attrs[0]->value;
 }

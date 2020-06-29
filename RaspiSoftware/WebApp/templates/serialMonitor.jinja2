@@ -1,0 +1,54 @@
+{% extends 'layout.jinja2' %}
+
+{% block content %}
+
+<!-- Motor Control Interface -->
+<div id="motorControl">
+    <!-- Create button -->
+    <h1>Motor Control</h1>
+    <input onclick="toggle_motor()" type="button" value="Enable Motor" id="motorStatus"></input>
+
+    <!-- Create slider -->
+    <div class="slidecontainer">
+        <input type="range" min="-1" max="1" value="0" step="0.1" class="slider" id="motorSpeed" oninput="updateSlider()" onchange="send_motor_speed()">
+        <p>Value: <span id="display" onload="updateSlider()"></span></p>
+    </div>
+</div>
+
+<!-- Refresh page button -->
+<button onclick="window.location.href='/';">
+    Refresh
+</button>
+
+<!-- Serial Send (Line by Line) -->
+<div>
+    <h2>Serial Send</h2>
+    <form method="POST" action="/">
+        {{ form.csrf_token }}
+        <div>{{ form.json.label }} {{ form.json(size=20) }}</div>
+        {{ form.submit }}
+    </form>
+</div>
+
+<!-- Incoming/Outgoing Display -->
+<div id="outgoing">
+    <h2>Outgoing</h2>
+    {{ outgoing }}
+</div>
+<div>
+    <h2>Incoming</h2>
+    <!-- {{ incoming }} -->
+    <div  id="incoming"> </div>
+
+</div>
+
+<table class = "table" id="statusTable">
+    <tr>
+      <td>Id</td>
+      <td>Data</td>
+    </tr>
+</table>
+
+<script type="text/javascript" src="{{url_for('static', filename='javascript/socket.js')}}"></script>
+
+{% endblock %}

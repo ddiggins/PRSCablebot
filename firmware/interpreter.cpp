@@ -5,17 +5,15 @@
 #include <SoftwareSerial.h>
 #include <string.h>
 #include "interpreter.h"
-#include "json.h"
-#include "sensor.h"
 
-int Interpreter::read(DynamicJsonDocument* doc){
 
-    if (Serial.available() > 0){
+int Interpreter::read(DynamicJsonDocument* doc) {
+    if (Serial.available() > 0) {
+
         // read the incoming line:
-        str = "0";
         str = Serial.readStringUntil('\n');
 
-        if (str == "0"){return;} // Catches blank lines
+        if (str == "0" || str == "") {return;}  // Catches blank lines
 
         // Interprets meaning with json
         DeserializationError error = deserializeJson(*doc, str);
@@ -28,7 +26,6 @@ int Interpreter::read(DynamicJsonDocument* doc){
         }
     }
     return 0;
-    
 }
 
 int Interpreter::clear(DynamicJsonDocument* doc) {
