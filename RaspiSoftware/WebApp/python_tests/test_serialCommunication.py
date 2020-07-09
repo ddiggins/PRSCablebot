@@ -26,8 +26,9 @@ def test_send_command():
 
 def test_recieve_command():
     master, slave = pty.openpty()
-    os.write(master, ('{"id" : "Motor1", "enabled" : "0"}').encode())
+    
 
     s_name = os.ttyname(slave)
     ser = serial.Serial(s_name, 115200, timeout=1)
+    os.write(master, ('{"id" : "Motor1", "enabled" : "0"}').encode())
     assert SerialCommunication.receive_command(ser) == '{"id" : "Motor1", "enabled" : "0"}'
