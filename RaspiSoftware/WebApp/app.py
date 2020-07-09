@@ -84,18 +84,17 @@ def index():
     return render_template('serialMonitor.jinja2', **templateData, form=form)
 
 
-if __name__ == '__main__':
-
-    # Queues for serial commands
+def unit_testing():
+    # Queues for serial commands    
     outgoing_commands = Queue()
     incoming_commands = Queue()
 
     # Queues for sql database connector
-    connector = sqlConnector.SQLConnector()
+    lock_global = Lock()
+    connector = sqlConnector.SQLConnector("sensorLogs", "sensorData", True, lock_global)
     request_queue_global = Queue()
     record_queue_global = Queue()
     answer_queue_global = Queue()
-    lock_global = Lock()
     connector_queues = [request_queue_global, record_queue_global, answer_queue_global, lock_global]
 
     connector = Process(target=connector.run_database_connector,\
@@ -108,9 +107,41 @@ if __name__ == '__main__':
     communicator.start()
 
     # Starts background task that continually checks for incoming messages.
-    logger = logger.Logger(incoming_commands, outgoing_commands, lock, socketio, "mainLog.txt", connector_queues)
-    socketio.start_background_task(logger.run_logger)
+    test_logger = logger.Logger(incoming_commands, outgoing_commands, lock, socketio, "testLog.txt", connector_queues)
+    # socketio.start_background_task(new_logger.run_logger)
 
     # Runs app wrapped in Socket.io. "debug" and "use_reloader" need to be false 
     # or else Flask creates a child process and re-runs main. 
     socketio.run(app, debug=False, host='0.0.0.0', use_reloader=False)
+
+    return (test_logger)
+
+if __name__ == '__main__':
+    # Queues for serial commands    
+    outgoing_commands = Queue()
+    incoming_commands = Queue()
+
+    # Queues for sql database connector
+    lock_global = Lock()
+    connector = sqlConnector.SQLConnector("sensorLogs", "sensorData", True, lock_global)
+    request_queue_global = Queue()
+    record_queue_global = Queue()
+    answer_queue_global = Queue()
+    connector_queues = [request_queue_global, record_queue_global, answer_queue_global, lock_global]
+
+    connector = Process(target=connector.run_database_connector,\
+        args=(request_queue_global, record_queue_global, answer_queue_global))
+    connector.start()
+
+    # Starts thread that runs serial communication.
+    communicator = Process(target=SerialCommunication.run_communication,\
+            args=(outgoing_commands, incoming_commands, lock))
+    communicator.start()
+
+    # Starts background task that continually checks for incoming messages.
+    new_logger = logger.Logger(incoming_commands, outgoing_commands, lock, socketio, "mainLog.txt", connector_queues)
+    socketio.start_background_task(new_logger.run_logger)
+
+    # Runs app wrapped in Socket.io. "debug" and "use_reloader" need to be false 
+    # or else Flask creates a child process and re-runs main. 
+    socketio.run(app, debug=False, host='0.0.0.0', use_reloader=False)    

@@ -27,7 +27,6 @@ class Logger:
         self.log_file.write('\n\n\n{"App Status": "Starting App"}' + "\n")
         self.log_file.flush()
 
-
     def check_incoming(self):
         """Function that checks whether there are new incoming serial messages. 
         Returns None if the buffer is empty"""
@@ -42,11 +41,11 @@ class Logger:
         """Interprets json and parses it into attributes"""
 
         data = json.loads(line) # Dict type
-        object_id = data["id"]
-        self.socketio.emit("update", line, json = True)
-        # Creates data dict with current states of objects(sensors, motors...)
-        self.data_dict[object_id] = data
-        
+        if 'id' in data:
+            object_id = data["id"]
+            self.socketio.emit("update", line, json = True)
+            # Creates data dict with current states of objects(sensors, motors...)
+            self.data_dict[object_id] = data
         return data
 
     def log_data(self, data_dict):
