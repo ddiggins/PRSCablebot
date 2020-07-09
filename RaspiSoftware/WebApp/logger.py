@@ -3,16 +3,18 @@
 import time
 import json
 from datetime import datetime
+import sqlConnector
 
 class Logger:
     """ Reads commands from serial, logs them, and reports tem to the website """
 
-    def __init__(self, incoming_commands, outgoing_commands, lock, socketio, log_file):
+    def __init__(self, incoming_commands, outgoing_commands, lock, socketio, log_file, connector_queues):
         """ Creates a logger and initializes a log with the given filename """
         self.incoming_commands = incoming_commands
         self.outgoing_commands = outgoing_commands
         self.lock = lock
         self.socketio = socketio # the socketio object
+        self.connector_queues = connector_queues
 
         # Define data structure
         # Dictionary of all current data known to the system
@@ -47,19 +49,21 @@ class Logger:
         
         return data
 
-    def log_data(self, data):
+    def log_data(self, data_dict):
         "Continually logs incoming serial messages"
 
         time = datetime.now().isoformat()
         timestamp = str(time)
-        data = str(json.dumps(data))
+        data = str(json.dumps(data_dict))
         print("Timestamp:" + timestamp)
         print("Data:" + data)
 
         self.log_file.write(timestamp + " " + data + "\n")
         self.log_file.flush()
 
-    
+        # Write records to database
+        self.connector_queues[1].put((datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3], data_dict["id"], list(data_dict.values())[2]))
+
     def run_logger(self):
         """ Runs the logger continuously. Designed to be run in a separate thread """
 
