@@ -38,9 +38,8 @@ def receive_command(ser):
     try:
         output = ser.readline().decode()
         return output
-
     except serial.SerialException:
-        print ("read failed")
+        print("read failed")
         return ""
 
 def run_communication(input_commands, output_commands, lock):

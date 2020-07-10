@@ -3,12 +3,10 @@
 import mysql.connector
 import time
 from multiprocessing import Process, Queue, Lock
+import datetime
 
-# DATABASE_NAME = "sensorLogs"
-# DELETE_EXISTING = False
 
 class SQLConnector:
-
     """ A wrapper for mySQL to handle data dumps and requests """
 
     def __init__(self, database_name, table_name, delete_existing, lock):
@@ -34,10 +32,24 @@ class SQLConnector:
             + " (id INT AUTO_INCREMENT PRIMARY KEY, timestamp TIMESTAMP(3),\
                  name VARCHAR(255), value VARCHAR(255))")
 
+
     def add_data(self, timestamp, name, value):
         """ Add a row to the table
             name and value are limited to 255 char strings
             timestamp must be in format 'YYYY-MM-DD hh:mm:ss.dddd' """
+
+        # Check for errors in inputs
+        # Verify that inputs are strings
+        assert isinstance(timestamp, str) and isinstance(name, str) and isinstance(value, str),\
+             "Inputs must be of type string"
+        #Verify that inputs do not overflow allowed size
+        assert len(timestamp) <= 255 and len(name) <= 255 and len(value) <= 255,\
+             "Input string overflow, (max 255 chars)"
+        # Verify that timestamp conforms to proper format
+        try:
+            datetime.datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S.%f')
+        except ValueError:
+            raise ValueError("Incorrect data format, should be 'Y-m-d H:M:S.f'")
 
         sql = "INSERT INTO " + str(self.table_name) + " (timestamp, name, value) VALUES (%s,%s,%s)"
         val = (timestamp, name, value)
@@ -55,6 +67,7 @@ class SQLConnector:
 
         for x in result:
             print(x)
+
 
     def query_sensor(self, name, num_records, order_column):
         """ Queries database for num_records recordings matching name """
@@ -80,8 +93,9 @@ class SQLConnector:
             return res
         return res[:num_records+1]
 
-    def run_database_connector(self, request_queue, record_queue, answer_queue):
 
+    def run_database_connector(self, request_queue, record_queue, answer_queue):
+        """ Check for incoming requests and process them """
         while 1:
             if not request_queue.empty():
                 request = request_queue.get()
@@ -94,16 +108,24 @@ class SQLConnector:
                 data = record_queue.get()
                 self.add_data(data[0], data[1], data[2])
             self.lock.release()
-            time.sleep(0)
+            time.sleep(.01)
+
 
 def request_record(record, request_queue, answer_queue, lock):
     """ Requests one or more records from the database """
-    lock.acquire()
     request_queue.put(record)
-    while answer_queue.empty(): time.sleep(0) # yield
+    # while answer_queue.empty(): time.sleep(.01) # yield
+    while 1:
+        lock.acquire()
+        if answer_queue.empty():
+            lock.release()
+            break
+        lock.release()
+        time.sleep(.01)
+
     val = answer_queue.get()
-    lock.release()
     return val
+
 
 def add_record(record, record_queue, lock):
     """ Requests one or more records from the database """
@@ -114,26 +136,36 @@ def add_record(record, record_queue, lock):
 
 
 
-
 if __name__ == "__main__":
-    connector = SQLConnector("sensorLogs", "testData", True)
+    REQUEST_QUEUE_GLOBAL = Queue()
+    RECORD_QUEUE_GLOBAL = Queue()
+    ANSWER_QUEUE_GLOBAL = Queue()
+    LOCK_GLOBAL = Lock()
 
-    request_queue_global = Queue()
-    record_queue_global = Queue()
-    answer_queue_global = Queue()
-    lock_global = Lock()
+    CONNECTOR = SQLConnector("sensorLogs", "testData", True, LOCK_GLOBAL)
 
-    # connector.add_data('1970-01-01 00:00:01.001', 'Sensor1', '5')
-    # # connector.print_table()
-    # print(connector.query_sensor('Sensor1', 2, 'timestamp'))
 
-    connector = Process(target=connector.run_database_connector,\
-            args=(request_queue_global, record_queue_global, answer_queue_global))
-    connector.start()
-    lock_global.acquire()
-    record_queue_global.put(('2000-01-01 00:00:01.000', "testName", "testValue"))
-    record_queue_global.put(('2000-01-01 00:00:01.000', "testName", "testValue"))
-    lock_global.release()
+    # CONNECTOR.add_data('1970-01-01 00:00:01.001', 'Sensor1', '5')
+    # # CONNECTOR.print_table()
+    # print(CONNECTOR.query_sensor('Sensor1', 2, 'timestamp'))
 
-    print("Record:")
-    print(request_record(('testName', 2, 'timestamp'), request_queue_global, answer_queue_global, lock_global))
+    CONNECTOR = Process(target=CONNECTOR.run_database_connector,\
+        args=(REQUEST_QUEUE_GLOBAL, RECORD_QUEUE_GLOBAL, ANSWER_QUEUE_GLOBAL))
+    CONNECTOR.start()
+
+    # Adding records
+    # RECORD_QUEUE_GLOBAL.put(('2000-01-01 00:00:01.000', "testName", "testValue"))
+    # RECORD_QUEUE_GLOBAL.put(('2000-01-01 00:00:02.000', "testName", "testValue"))
+    add_record(('2000-01-01 00:00:01.000', "testName", "testValue"),\
+        RECORD_QUEUE_GLOBAL, LOCK_GLOBAL)
+    add_record(('2000-01-01 00:00:01.000', "testName", "testValue"), \
+        RECORD_QUEUE_GLOBAL, LOCK_GLOBAL)
+
+    while not RECORD_QUEUE_GLOBAL.empty(): time.sleep(.01)
+    time.sleep(.5)
+    print("about to get record")
+    RECORD = request_record(('testName', 2, 'timestamp'), REQUEST_QUEUE_GLOBAL, ANSWER_QUEUE_GLOBAL, LOCK_GLOBAL)
+    print("got record")
+    print("record is" + str(RECORD))
+    CONNECTOR.kill()
+    print(RECORD)

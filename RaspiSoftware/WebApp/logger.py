@@ -8,7 +8,8 @@ import sqlConnector
 class Logger:
     """ Reads commands from serial, logs them, and reports tem to the website """
 
-    def __init__(self, incoming_commands, outgoing_commands, lock, socketio, log_file, connector_queues):
+    def __init__(self, incoming_commands, outgoing_commands, lock, socketio, log_file,\
+        connector_queues):
         """ Creates a logger and initializes a log with the given filename """
         self.incoming_commands = incoming_commands
         self.outgoing_commands = outgoing_commands
@@ -28,7 +29,7 @@ class Logger:
         self.log_file.flush()
 
     def check_incoming(self):
-        """Function that checks whether there are new incoming serial messages. 
+        """Function that checks whether there are new incoming serial messages.
         Returns None if the buffer is empty"""
         self.lock.acquire()
         line = None
@@ -39,11 +40,16 @@ class Logger:
 
     def interpret_json(self, line):
         """Interprets json and parses it into attributes"""
+        # Creates dict named data with json info. Throws ValueError if
+        # invalid Json input.
+        data = json.loads(line)
 
-        data = json.loads(line) # Dict type
+        assert 'id' in data.keys(), "Input string missing key 'id' "
+        assert data['id'] != "", "Input id is empty"
+
         if 'id' in data:
             object_id = data["id"]
-            self.socketio.emit("update", line, json = True)
+            self.socketio.emit("update", line, json=True)
             # Creates data dict with current states of objects(sensors, motors...)
             self.data_dict[object_id] = data
         return data
@@ -51,17 +57,21 @@ class Logger:
     def log_data(self, data_dict):
         "Continually logs incoming serial messages"
 
-        time = datetime.now().isoformat()
-        timestamp = str(time)
+        current_time = datetime.now().isoformat()
+        timestamp = str(current_time)
         data = str(json.dumps(data_dict))
         print("Timestamp:" + timestamp)
         print("Data:" + data)
+
+        assert 'id' in data_dict.keys(), "Input string missing key 'id' "
+        assert data_dict['id'] != "", "Input id is empty"
 
         self.log_file.write(timestamp + " " + data + "\n")
         self.log_file.flush()
 
         # Write records to database
-        self.connector_queues[1].put((datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3], data_dict["id"], list(data_dict.values())[2]))
+        self.connector_queues[1].put((datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3],\
+            str(data_dict["id"]), str(list(data_dict.values())[2])))
 
     def run_logger(self):
         """ Runs the logger continuously. Designed to be run in a separate thread """

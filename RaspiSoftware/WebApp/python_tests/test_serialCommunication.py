@@ -1,14 +1,17 @@
+import sys, os, pty, serial
 import pytest
-import sys
-sys.path.append("..") # Adds higher directory to python modules path.
 import SerialCommunication
-import os, pty, serial
+sys.path.append("..") # Adds higher directory to python modules path.
+
 
 def test_start_serial():
-    serial = SerialCommunication.start_serial()
-    assert serial is not None
+    """ Test the serial inizalization """
+    ser = SerialCommunication.start_serial()
+    assert ser is not None
+
 
 def test_send_command():
+    """ Test the serial send command """
     ser = SerialCommunication.start_serial()
 
     # Correct Statement
@@ -22,13 +25,17 @@ def test_send_command():
 
     # Corrupt Serial
     with pytest.raises(Exception):
-        ticket = send_command(None, '{"id" : "Motor1", "enabled" : "0"}')
+        ticket = SerialCommunication.send_command(None, '{"id" : "Motor1", "enabled" : "0"}')
+
 
 def test_recieve_command():
-    master, slave = pty.openpty()
-    
+    """ Test the serial recieve command """
 
-    s_name = os.ttyname(slave)
-    ser = serial.Serial(s_name, 115200, timeout=1)
-    os.write(master, ('{"id" : "Motor1", "enabled" : "0"}').encode())
+    # Generate virtual serial
+    rx, tx = pty.openpty()
+    tx_name = os.ttyname(tx)
+    ser = serial.Serial(tx_name, 115200, timeout=1)
+    os.write(rx, ('{"id" : "Motor1", "enabled" : "0"}').encode())
+
+    # Correct Statement
     assert SerialCommunication.receive_command(ser) == '{"id" : "Motor1", "enabled" : "0"}'
