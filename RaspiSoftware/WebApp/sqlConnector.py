@@ -22,8 +22,26 @@ class SQLConnector:
             )
         self.cursor = self.database.cursor()
 
-        # Clear table if specified
-        self.table_name = table_name
+
+        if table_name == "default": # Default assigns a new unique number
+
+            self.cursor.execute("SHOW TABLES")
+            a = self.cursor.fetchall()
+
+            tables = [x[0] for x in a if x[0][3:].isnumeric()] # Fetch names of all numbered tables
+            tables.sort()
+
+            if tables == []:
+                new_table_name = "run0"
+            else:
+                new_table_name = "run" + str(int(tables[-1][3:]) + 1) # Create new name one greater than existing
+            self.table_name = new_table_name
+
+        else:
+            self.table_name = table_name
+
+
+        # Clear table if specifiedTrueTrue
         if delete_existing:
             self.cursor.execute("DROP TABLE IF EXISTS " + str(self.table_name))
 

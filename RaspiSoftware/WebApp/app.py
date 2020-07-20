@@ -88,7 +88,7 @@ if __name__ == '__main__':
 
     # Queues for sql database connector
     LOCK_GLOBAL = Lock()
-    CONNECTOR = sqlConnector.SQLConnector("sensorLogs", "sensorData", True, LOCK_GLOBAL)
+    CONNECTOR = sqlConnector.SQLConnector("sensorLogs", "default", False, LOCK_GLOBAL)
     REQUEST_QUEUE_GLOBAL = Queue()
     RECORD_QUEUE_GLOBAL = Queue()
     ANSWER_QUEUE_GLOBAL = Queue()
