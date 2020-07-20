@@ -87,9 +87,12 @@ class SQLConnector:
             print(x)
 
 
-    def query_sensor(self, name, num_records, order_column):
+    def query_sensor(self, name, num_records, order_column, table_name="default"):
         """ Queries database for num_records recordings matching name """
-        sql = "SELECT * FROM " + str(self.table_name) + " WHERE name = %s ORDER BY %s"
+        if table_name == "default":
+            sql = "SELECT * FROM " + str(self.table_name) + " WHERE name = %s ORDER BY %s"
+        else:
+            sql = "SELECT * FROM " + str(table_name) + " WHERE name = %s ORDER BY %s"
         adr = (name, order_column)
 
         self.cursor.execute(sql, adr)
@@ -117,8 +120,11 @@ class SQLConnector:
         while 1:
             if not request_queue.empty():
                 request = request_queue.get()
-                assert len(request) == 3, "Invalid request entered"
-                answer_queue.put(self.query_sensor(request[0], request[1], request[2]))
+                assert len(request) == 3 or len(request) == 4, "INVALID REQUEST: wrong number of arguments"
+                if len(request) == 3:
+                    answer_queue.put(self.query_sensor(request[0], request[1], request[2]))
+                if len(request) == 4:
+                    answer_queue.put(self.query_sensor(request[0], request[1], request[2], request[3]))
 
             self.lock.acquire()
             if not record_queue.empty():
