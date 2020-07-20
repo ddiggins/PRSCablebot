@@ -14,6 +14,7 @@ import logger
 import sqlConnector
 from gevent import monkey
 monkey.patch_all()
+from camera import Camera
 
 # Initializes flask app
 
@@ -107,6 +108,12 @@ if __name__ == '__main__':
     NEW_LOGGER = logger.Logger(INCOMING_COMMANDS, OUTGOING_COMMANDS, LOCK, SOCKETIO,\
             "mainLog.txt", CONNECTOR_QUEUES)
     SOCKETIO.start_background_task(NEW_LOGGER.run_logger)
+
+    # Starts camera
+    CAMERA = Camera(((2592, 1944)), 10, "Images", RECORD_QUEUE_GLOBAL)
+    CAMERA_PROCESS = Process(target=CAMERA.run_camera)
+    CAMERA_PROCESS.start()
+
 
     # Runs app wrapped in Socket.io. "debug" and "use_reloader" need to be false
     # or else Flask creates a child process and re-runs main.
