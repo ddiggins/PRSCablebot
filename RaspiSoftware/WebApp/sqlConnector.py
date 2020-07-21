@@ -4,6 +4,7 @@ import mysql.connector
 import time
 from multiprocessing import Process, Queue, Lock
 import datetime
+import json
 
 
 class SQLConnector:
@@ -136,7 +137,10 @@ class SQLConnector:
 
 
 def request_record(record, request_queue, answer_queue, lock):
-    """ Requests one or more records from the database """
+    """ Requests one or more records from the database 
+    record: (name of variable, number of records wanted, sorted by)
+    """
+    
     request_queue.put(record)
     # while answer_queue.empty(): time.sleep(.01) # yield
     while 1:
@@ -158,7 +162,9 @@ def add_record(record, record_queue, lock):
     lock.release()
 
 
-
+def myconverter(o):
+    if isinstance(o, datetime.datetime):
+        return o.__str__()
 
 if __name__ == "__main__":
     REQUEST_QUEUE_GLOBAL = Queue()
@@ -188,7 +194,12 @@ if __name__ == "__main__":
     while not RECORD_QUEUE_GLOBAL.empty(): time.sleep(.01)
     time.sleep(.5)
     print("about to get record")
-    RECORD = request_record(('testName', 2, 'timestamp'), REQUEST_QUEUE_GLOBAL, ANSWER_QUEUE_GLOBAL, LOCK_GLOBAL)
+    RECORD = request_record(('testName', 1, 'timestamp'), REQUEST_QUEUE_GLOBAL, ANSWER_QUEUE_GLOBAL, LOCK_GLOBAL)
+    #
+    print("queried record type: ", type(RECORD))
+    jsonRecord = json.dumps(RECORD, default = myconverter)
+    print("json record: ", jsonRecord)
+    #
     print("got record")
     print("record is" + str(RECORD))
     CONNECTOR.kill()

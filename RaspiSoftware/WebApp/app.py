@@ -1,6 +1,7 @@
 """ Basic web app using Flask
     Runs on the local ip of the pi and is accessible on the network """
-
+from gevent import monkey
+monkey.patch_all()
 import os
 from multiprocessing import Queue, Process
 from threading import Lock
@@ -12,8 +13,6 @@ import json
 import logging
 import logger
 import sqlConnector
-from gevent import monkey
-monkey.patch_all()
 
 # Initializes flask app
 
