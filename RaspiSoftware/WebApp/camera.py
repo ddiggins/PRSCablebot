@@ -3,7 +3,7 @@
 import time
 from picamera import PiCamera
 import datetime
-from multiprocessing import Queue
+from multiprocessing import Queue, Process
 
 
 class Camera:
@@ -26,11 +26,16 @@ class Camera:
         """ Take a single image and save it with a unique name to the given folder """
 
         timestamp = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+        print("ABOUT TO START PREVIEW")
         self.camera.start_preview()
         self.camera.annotate_text = timestamp
         time.sleep(2)
         image_name = self.image_folder_path + "/image" + str(timestamp) + ".jpg"
+        print("ABOUT TO CAPTURE IMAGE")
         self.camera.capture(image_name)
+        print("IMAGE CAPTURED")
+        self.camera.stop_preview()
+        print("PREVIEW ENDED")
         return timestamp, image_name
 
     def run_camera(self):
@@ -42,11 +47,19 @@ class Camera:
                 print(last_time)
                 timestamp, image_name = self.take_image()
                 self.record_queue.put((timestamp, "Camera", image_name))
+                print("ADDED TO QUEUE")
+
+def start_camera(resolution, interval, image_folder_path, record_queue):
+    camera = Camera(resolution, interval, image_folder_path, record_queue)
+    camera.run_camera()
 
 
 
 if __name__ == "__main__":
     QUEUE = Queue()
-    CAMERA = Camera(((2592, 1944)), 10, "Images", QUEUE)
-    # CAMERA.take_image()
-    CAMERA.run_camera()
+    # CAMERA = Camera(((2592, 1944)), 10, "Images", QUEUE)
+    # # CAMERA.take_image()
+    # CAMERA.run_camera()
+
+    CAMERA_PROCESS = Process(target=start_camera, args=((2592, 1944), 10, "Images", QUEUE))
+    CAMERA_PROCESS.start()

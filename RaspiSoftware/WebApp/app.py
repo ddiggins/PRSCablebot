@@ -1,6 +1,8 @@
 """ Basic web app using Flask
     Runs on the local ip of the pi and is accessible on the network """
 
+from gevent import monkey
+monkey.patch_all()
 import os
 from multiprocessing import Queue, Process
 from threading import Lock
@@ -12,9 +14,7 @@ import json
 import logging
 import logger
 import sqlConnector
-from gevent import monkey
-monkey.patch_all()
-from camera import Camera
+import camera
 
 # Initializes flask app
 
@@ -110,8 +110,7 @@ if __name__ == '__main__':
     SOCKETIO.start_background_task(NEW_LOGGER.run_logger)
 
     # Starts camera
-    CAMERA = Camera(((2592, 1944)), 10, "Images", RECORD_QUEUE_GLOBAL)
-    CAMERA_PROCESS = Process(target=CAMERA.run_camera)
+    CAMERA_PROCESS = Process(target=camera.start_camera, args=((2592, 1944), 10, "Images", RECORD_QUEUE_GLOBAL))
     CAMERA_PROCESS.start()
 
 
