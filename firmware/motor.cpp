@@ -37,13 +37,13 @@ int Motor::run() {
         if (enabled.value.toInt() && !stopped) {
 
             // Prints serial output
-            Serial.print("{\"id\" : \"");
+            Serial.print(F("{\"id\" : \""));
             Serial.print(id_name());
-            Serial.print("\", \"enabled\" : ");
+            Serial.print(F("\", \"enabled\" : "));
             Serial.print(enabled.value);
-            Serial.print(", \"speed\" : ");
+            Serial.print(F(", \"speed\" : "));
             Serial.print(speed.value);
-            Serial.println("}");
+            Serial.println(F("}"));
 
             // Update Motor speed
             int timeOn = int(speed.value.toDouble()*500.0+1500.0);

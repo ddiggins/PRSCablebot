@@ -32,13 +32,13 @@ int MotorEncoder::run() {
         if (enabled.value.toInt()) {
 
             // Prints serial output
-            Serial.print("{\"id\" : \"");
+            Serial.print(F("{\"id\" : \""));
             Serial.print(id_name());
-            Serial.print("\", \"enabled\" : ");
+            Serial.print(F("\", \"enabled\" : "));
             Serial.print(enabled.value);
-            Serial.print(", \"position\" : ");
+            Serial.print(F(", \"position\" : "));
             Serial.print(encoder->read());
-            Serial.println("}");
+            Serial.println(F("}"));
         }
     update_time = millis();
     }

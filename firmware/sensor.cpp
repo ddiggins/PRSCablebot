@@ -26,13 +26,13 @@ int Sensor::run(){
     if ((millis()-last_time) > (1000/update_rate.value.toInt())){
 
         if (enabled.value.toInt()){
-            Serial.print("{\"id\" : \"");
+            Serial.print(F("{\"id\" : \""));
             Serial.print(id_name());
-            Serial.print("\", \"enabled\" : ");
+            Serial.print(F("\", \"enabled\" : "));
             Serial.print(enabled.value);
-            Serial.print(", \"value\" : ");
+            Serial.print(F(", \"value\" : "));
             Serial.print(4); // Arbitrary value replace with real output
-            Serial.println("}");
+            Serial.println(F("}"));
         }
         last_time = millis();
     }
