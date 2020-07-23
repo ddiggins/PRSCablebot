@@ -88,15 +88,20 @@ if __name__ == '__main__':
 
     # Queues for sql database connector
     LOCK_GLOBAL = Lock()
-    CONNECTOR = sqlConnector.SQLConnector("sensorLogs", "default", False, LOCK_GLOBAL)
+    CONNECTOR = sqlConnector.SQLConnector("sensorLogs", "default", False, LOCK_GLOBAL, SOCKETIO)
     REQUEST_QUEUE_GLOBAL = Queue()
     RECORD_QUEUE_GLOBAL = Queue()
     ANSWER_QUEUE_GLOBAL = Queue()
     CONNECTOR_QUEUES = [REQUEST_QUEUE_GLOBAL, RECORD_QUEUE_GLOBAL, ANSWER_QUEUE_GLOBAL, LOCK_GLOBAL]
 
-    CONNECTOR = Process(target=CONNECTOR.run_database_connector,\
+    DATABASE_CONNECTOR = Process(target=CONNECTOR.run_database_connector,\
         args=(REQUEST_QUEUE_GLOBAL, RECORD_QUEUE_GLOBAL, ANSWER_QUEUE_GLOBAL))
-    CONNECTOR.start()
+    DATABASE_CONNECTOR.start()
+
+    # Starts thread that checks database for incoming messages
+    DATABASE_SCANNER = Process(target=CONNECTOR.get_latest_record, \
+        args=(REQUEST_QUEUE_GLOBAL, ANSWER_QUEUE_GLOBAL, LOCK_GLOBAL))
+    DATABASE_SCANNER.start()
 
     # Starts thread that runs serial communication.
     COMMUNICATOR = Process(target=SerialCommunication.run_communication,\

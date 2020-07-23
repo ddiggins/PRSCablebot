@@ -6,7 +6,7 @@ socket.on('connect', function(){
     console.log('Websocket connected!');
 });
               
-socket.on('update', function(data){
+socket.on('update table', function(data){
 /*  Update incoming/outgoing display 
  on command from Websockets*/
 var message = JSON.parse(data);
