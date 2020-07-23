@@ -26,15 +26,15 @@ int TempSensor::run(){
     if ((millis()-last_time) > (1000/update_rate.value.toInt())){
 
         if (enabled.value.toInt()){
-            Serial.print("{\"id\" : \"");
+            Serial.print(F("{\"id\" : \""));
             Serial.print(id_name());
-            Serial.print("\", \"enabled\" : ");
+            Serial.print(F("\", \"enabled\" : "));
             Serial.print(enabled.value);
-            Serial.print(", \"temperature\" : ");
+            Serial.print(F(", \"temperature\" : "));
             Serial.print(sensor.readTemperature()); 
-            Serial.print(", \"humidity\" : ");
+            Serial.print(F(", \"humidity\" : "));
             Serial.print(sensor.readHumidity()); 
-            Serial.println("}");
+            Serial.println(F("}"));
         }
         last_time = millis();
     }
@@ -51,7 +51,7 @@ TempSensor::TempSensor(String name){
 
     // Initialize sensor
     if (!sensor.begin()){
-        Serial.println("Error: Unable to find temp/humidity sensor");
+        Serial.println(F("Error: Unable to find temp/humidity sensor"));
     }
 }
 

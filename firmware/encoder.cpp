@@ -3,12 +3,12 @@
 
 // Includes
 #include <ArduinoJson.h>
-#include <Servo.h>
+#include <Encoder.h>
 #include "object.h"
-#include "motor.h"
+#include "encoder.h"
 
 
-int Motor::update(JsonDocument* params) {  // Same as doc
+int MotorEncoder::update(JsonDocument* params) {  // Same as doc
 
     // Interpret the document to an indexable object (JsonObject is a reference to the document not a copy)
     JsonObject obj = params->as<JsonObject>();
@@ -25,54 +25,35 @@ int Motor::update(JsonDocument* params) {  // Same as doc
 }
 
 
-int Motor::run() {
+int MotorEncoder::run() {
 
     if ((millis()-update_time) > 1000/update_rate.value.toInt()) {
 
-        // Emergency stop
-        if (!digitalRead(stop_pin)) {
-            stopped = 1;
-        }
-
-        if (enabled.value.toInt() && !stopped) {
+        if (enabled.value.toInt()) {
 
             // Prints serial output
             Serial.print(F("{\"id\" : \""));
             Serial.print(id_name());
             Serial.print(F("\", \"enabled\" : "));
             Serial.print(enabled.value);
-            Serial.print(F(", \"speed\" : "));
-            Serial.print(speed.value);
+            Serial.print(F(", \"position\" : "));
+            Serial.print(encoder->read());
             Serial.println(F("}"));
-
-            // Update Motor speed
-            int timeOn = int(speed.value.toDouble()*500.0+1500.0);
-            if (!motor.attached()) {
-                motor.attach(motorPWM);
-            }
-            motor.writeMicroseconds(timeOn);
-
-        } else {
-            if (motor.attached()) {
-                motor.detach();
-            }
         }
     update_time = millis();
     }
 }
 
 
-Motor::Motor(String name) {
+MotorEncoder::MotorEncoder(String name) {
     id.value = name;
     attributes.attrs[0] = &id;  // id must always come first
     attributes.attrs[1] = &enabled;
     attributes.attrs[2] = &update_rate;
-    attributes.attrs[3] = &speed;
-    attributes.number = 4;
-    pinMode(stop_pin, INPUT_PULLUP);
+    attributes.number = 3;
 }
 
 
-String Motor::id_name() {
+String MotorEncoder::id_name() {
     return attributes.attrs[0]->value;
 }

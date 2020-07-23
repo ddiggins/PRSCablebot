@@ -9,6 +9,7 @@
 #include "sensor.h"
 #include "tempSensor.h"
 #include "leakSensor.h"
+#include "encoder.h"
 
 
 
@@ -33,7 +34,7 @@ void loop(){
 
     // Create list of sensors and structure to hold them
     typedef struct Objects{
-        const static int number = 5; // Number of sensors
+        const static int number = 6; // Number of sensors
         GenericObject* items[number];
     } Objects;
 
@@ -44,6 +45,10 @@ void loop(){
     TempSensor tempsensor("tempsensor");
     LeakSensor foreleak("foreleak", 13);
     LeakSensor aftleak("aftleak", 12);
+    MotorEncoder encoder("encoder");
+    // LeakSensor newleak("newleak", 14);
+    // LeakSensor new2leak("new2leak", 15);
+
 
     // Add objects to structure
     Objects objects;
@@ -52,6 +57,7 @@ void loop(){
     objects.items[2] = &tempsensor;
     objects.items[3] = &foreleak;
     objects.items[4] = &aftleak;
+    objects.items[5] = &encoder;
 
     while(1){
 
