@@ -34,13 +34,14 @@ class SQLConnector:
             a = self.cursor.fetchall()
 
             tables = [x[0] for x in a if x[0][3:].isnumeric()] # Fetch names of all numbered tables
-            tables.sort()
+            # Sort tables in ascending order
+            tables.sort(key=lambda x: int("".join([i for i in x if i.isdigit()])))
 
             if tables == []:
                 new_table_name = "run0"
             else:
                 new_table_name = "run" + str(int(tables[-1][3:]) + 1) # Create new name one greater than existing
-                print ("creating new table")
+                print ("creating new table name")
             self.table_name = new_table_name
 
         else:
@@ -191,7 +192,7 @@ class SQLConnector:
 
 def request_record(record, request_queue, answer_queue, lock):
     """ Requests one or more records from the database 
-    record: (name of variable, number of records wanted, sorted by)
+    record: (name of variable, number of records wanted, variable to sort by, tablename)
     """
     
     request_queue.put(record)
