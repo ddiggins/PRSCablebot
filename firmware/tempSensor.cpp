@@ -32,7 +32,8 @@ int TempSensor::run(){
             Serial.print(F("\", \"enabled\" : "));
             Serial.print(enabled.value);
             Serial.print(F(", \"temperature\" : "));
-            Serial.print(sensor.readTemperature()); 
+            Serial.print(sensor.readTemperature());
+            Serial.println(F("}")); 
             Serial.print(F("{\"id\" : \""));
             Serial.print(id_name());
             Serial.print(F("Humidity"));
