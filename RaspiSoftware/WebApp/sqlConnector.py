@@ -4,15 +4,20 @@ import mysql.connector
 import time
 from multiprocessing import Process, Queue, Lock
 import datetime
-
+import json
 
 class SQLConnector:
     """ A wrapper for mySQL to handle data dumps and requests """
 
-    def __init__(self, database_name, table_name, delete_existing, lock):
+    # def __init__(self, database_name, table_name, delete_existing, lock):
+    def __init__(self, database_name, table_name, delete_existing, lock, socketio):
+
         """ Set up database if not alrerady configured and assign structure """
 
         self.lock = lock
+
+        self.socketio = socketio # the socketio object
+
         # Connect to server and create cursor
         self.database = mysql.connector.connect(
             host="localhost",
@@ -20,8 +25,8 @@ class SQLConnector:
             password="user",
             database=database_name
             )
-        self.cursor = self.database.cursor()
-
+        self.cursor = self.database.cursor(buffered=True)
+        
 
         if table_name == "default": # Default assigns a new unique number
 
@@ -35,6 +40,7 @@ class SQLConnector:
                 new_table_name = "run0"
             else:
                 new_table_name = "run" + str(int(tables[-1][3:]) + 1) # Create new name one greater than existing
+                print ("creating new table")
             self.table_name = new_table_name
 
         else:
@@ -87,18 +93,36 @@ class SQLConnector:
             print(x)
 
 
-    def query_sensor(self, name, num_records, order_column, table_name="default"):
-        """ Queries database for num_records recordings matching name """
+    def query_sensor(self, name, num_records, order_column, table_name="default"): # add in default to generate new tables
+        """ Queries database for num_records recordings matching name. 
+
+        To just select the n last rows regardless of name, set name = "*"
+        """
+        # "default" signifies that new tables are created each run, 
+        # so query selects from the latest table
         if table_name == "default":
-            sql = "SELECT * FROM " + str(self.table_name) + " WHERE name = %s ORDER BY %s"
+            if name == "*": 
+                sql = "SELECT * FROM " + str(self.table_name) + " ORDER BY id"
+            else:
+                sql = "SELECT * FROM " + str(self.table_name) + " WHERE name = %s ORDER BY %s"
+
         else:
-            sql = "SELECT * FROM " + str(table_name) + " WHERE name = %s ORDER BY %s"
-        adr = (name, order_column)
+            if name == "*":
+                sql = "SELECT * FROM " + str(table_name) + " ORDER BY id"
+            else:
+                sql = "SELECT * FROM " + str(table_name) + " WHERE name = %s ORDER BY %s"
 
-        self.cursor.execute(sql, adr)
+        if name == "*":
+            # adr = (order_column)
+            # self.cursor.execute(sql, adr)
+            self.cursor.execute(sql)
 
-        print("NUM RECORDS IS " + str(num_records))
-        print("TYPE OF NUM_RECORDS IS " + str(type(num_records)))
+        else:
+            adr = (name, order_column)
+            self.cursor.execute(sql, adr)
+
+        # print("NUM RECORDS IS " + str(num_records))
+        # print("TYPE OF NUM_RECORDS IS " + str(type(num_records)))
 
         if num_records == 1:
             # To query a single value
@@ -134,9 +158,36 @@ class SQLConnector:
             self.lock.release()
             time.sleep(.01)
 
+    def get_latest_record(self, request_queue, answer_queue, lock):
+        '''
+        Will run as a background process constantly checking the database to see whether
+        the records have been updated. If new record appears, it broadcases it as a json message.
+        '''
+        old_record = request_record(('*', 1, 'timestamp'), request_queue, answer_queue, lock)
+        
+        while 1:
+            # Checks database for updates every second
+            time.sleep(1)
+        
+            new_record = request_record(('*', 1, 'timestamp'), request_queue, answer_queue, lock)
+            print ("NEW RECORD: ", new_record)
+            # Check that the record has updated.
+            if new_record != old_record:
+                # Reorders record so that the sensor name is first. Also removes id.
+                # (name, value, timestamp)
+                new_record = (new_record[2], new_record[3], new_record[1])
+                new_record = json.dumps(new_record, default = myconverter) # Converts into Json
+                self.socketio.emit("update table", new_record, json= True)
+                print("emited update table")
+                # Update old record since we just changed it. 
+                old_record = new_record
+
 
 def request_record(record, request_queue, answer_queue, lock):
-    """ Requests one or more records from the database """
+    """ Requests one or more records from the database 
+    record: (name of variable, number of records wanted, sorted by)
+    """
+    
     request_queue.put(record)
     # while answer_queue.empty(): time.sleep(.01) # yield
     while 1:
@@ -148,7 +199,10 @@ def request_record(record, request_queue, answer_queue, lock):
         time.sleep(.01)
 
     val = answer_queue.get()
+    # Returns a tuple
     return val
+
+
 
 
 def add_record(record, record_queue, lock):
@@ -158,7 +212,9 @@ def add_record(record, record_queue, lock):
     lock.release()
 
 
-
+def myconverter(o):
+    if isinstance(o, datetime.datetime):
+        return o.__str__()
 
 if __name__ == "__main__":
     REQUEST_QUEUE_GLOBAL = Queue()
@@ -166,7 +222,7 @@ if __name__ == "__main__":
     ANSWER_QUEUE_GLOBAL = Queue()
     LOCK_GLOBAL = Lock()
 
-    CONNECTOR = SQLConnector("sensorLogs", "testData", True, LOCK_GLOBAL)
+    CONNECTOR = SQLConnector("sensorLogs", "testData", True, LOCK_GLOBAL, socketio)
 
 
     # CONNECTOR.add_data('1970-01-01 00:00:01.001', 'Sensor1', '5')
@@ -188,8 +244,22 @@ if __name__ == "__main__":
     while not RECORD_QUEUE_GLOBAL.empty(): time.sleep(.01)
     time.sleep(.5)
     print("about to get record")
-    RECORD = request_record(('testName', 2, 'timestamp'), REQUEST_QUEUE_GLOBAL, ANSWER_QUEUE_GLOBAL, LOCK_GLOBAL)
-    print("got record")
+    RECORD = request_record(('testName', 1, 'timestamp'), REQUEST_QUEUE_GLOBAL, ANSWER_QUEUE_GLOBAL, LOCK_GLOBAL)
     print("record is" + str(RECORD))
+    
+    # Testing for json data to feed into Google Charts
+    print("queried record type: ", type(RECORD)) #This is a tuple
+    # jsonRecord = RECORD[1:] #Removes the first element because it's just the ID.
+    rearranged_record = (RECORD[2], RECORD[3], RECORD[1])
+    jsonRecord = json.dumps(rearranged_record, default = myconverter)
+    print("json record: ", jsonRecord)
+    # # Convert json back to tuple
+    # oldjson = json.loads()
+
+    # Get latest n records
+    LATESTRECORD = request_record(('*', 1, 'timestamp'), REQUEST_QUEUE_GLOBAL, ANSWER_QUEUE_GLOBAL, LOCK_GLOBAL)
+    print("latest record: ", LATESTRECORD)
+    print("latest record type: ", type(LATESTRECORD))
+    #
+
     CONNECTOR.kill()
-    print(RECORD)
