@@ -1,6 +1,11 @@
 <?php
 
-$con = mysqli_connect(‘localhost’,’root’,”,’master’);
+$host="localhost";
+$user="databaseUser",
+$password="user",
+$database=database_name
+
+$con = mysqli_connect("localhost","databaseUser","user", "");
 if (!$con) {
   die(‘Could not connect: ‘ . mysqli_error($con));
 }

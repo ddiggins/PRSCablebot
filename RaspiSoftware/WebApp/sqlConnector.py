@@ -102,13 +102,13 @@ class SQLConnector:
         # so query selects from the latest table
         if table_name == "default":
             if name == "*": 
-                sql = "SELECT * FROM " + str(self.table_name) + " ORDER BY id"
+                sql = "SELECT * FROM " + str(self.table_name) + " ORDER BY id DESC"
             else:
                 sql = "SELECT * FROM " + str(self.table_name) + " WHERE name = %s ORDER BY %s"
 
         else:
             if name == "*":
-                sql = "SELECT * FROM " + str(table_name) + " ORDER BY id"
+                sql = "SELECT * FROM " + str(table_name) + " ORDER BY id DESC"
             else:
                 sql = "SELECT * FROM " + str(table_name) + " WHERE name = %s ORDER BY %s"
 
@@ -141,6 +141,7 @@ class SQLConnector:
 
     def run_database_connector(self, request_queue, record_queue, answer_queue):
         """ Check for incoming requests and process them """
+        print ("running database")
         while 1:
             if not request_queue.empty():
                 request = request_queue.get()
@@ -167,20 +168,25 @@ class SQLConnector:
         
         while 1:
             # Checks database for updates every second
-            time.sleep(1)
+            time.sleep(2)
         
             new_record = request_record(('*', 1, 'timestamp'), request_queue, answer_queue, lock)
             print ("NEW RECORD: ", new_record)
+            print ("OLD RECORD: ", old_record)
             # Check that the record has updated.
-            if new_record != old_record:
-                # Reorders record so that the sensor name is first. Also removes id.
+            record_equality = (new_record == old_record)
+            print ("RECORD EQUALITY: ", record_equality)
+            # if (new_record != old_record):
+            if (record_equality == False):
+                # Update old record to new record since we already compared them
+                old_record = new_record
+                # Removes id of record, reorders so that the sensor name is first.
                 # (name, value, timestamp)
                 new_record = (new_record[2], new_record[3], new_record[1])
                 new_record = json.dumps(new_record, default = myconverter) # Converts into Json
+                print("json new record: ", new_record)
                 self.socketio.emit("update table", new_record, json= True)
                 print("emited update table")
-                # Update old record since we just changed it. 
-                old_record = new_record
 
 
 def request_record(record, request_queue, answer_queue, lock):
@@ -201,8 +207,6 @@ def request_record(record, request_queue, answer_queue, lock):
     val = answer_queue.get()
     # Returns a tuple
     return val
-
-
 
 
 def add_record(record, record_queue, lock):

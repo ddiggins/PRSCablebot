@@ -99,9 +99,9 @@ if __name__ == '__main__':
     DATABASE_CONNECTOR.start()
 
     # Starts thread that checks database for incoming messages
-    DATABASE_SCANNER = Process(target=CONNECTOR.get_latest_record, \
-        args=(REQUEST_QUEUE_GLOBAL, ANSWER_QUEUE_GLOBAL, LOCK_GLOBAL))
-    DATABASE_SCANNER.start()
+    # DATABASE_SCANNER = Process(target=CONNECTOR.get_latest_record, \
+    #     args=(REQUEST_QUEUE_GLOBAL, ANSWER_QUEUE_GLOBAL, LOCK_GLOBAL))
+    # DATABASE_SCANNER.start()
 
     # Starts thread that runs serial communication.
     COMMUNICATOR = Process(target=SerialCommunication.run_communication,\
