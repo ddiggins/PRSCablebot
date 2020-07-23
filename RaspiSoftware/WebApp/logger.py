@@ -70,10 +70,16 @@ class Logger:
         self.log_file.flush()
 
         # Write records to database
+<<<<<<< HEAD
         print("DATA DICT VALUES", str(list(data_dict.values())))
         self.connector_queues[1].put((datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3],\
             str(data_dict["id"]), str(list(data_dict.values())[2])))
         print("writing to the database")
+=======
+        if len(list(data_dict.values())) == 3: # If the record has data associated
+            self.connector_queues[1].put((datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3],\
+                str(data_dict["id"]), str(list(data_dict.values())[2]))) # Add data to database
+>>>>>>> e5fd649f2d7305cbf2f70bb167797f0c848b55c9
 
     def run_logger(self):
         """ Runs the logger continuously. Designed to be run in a separate thread """
