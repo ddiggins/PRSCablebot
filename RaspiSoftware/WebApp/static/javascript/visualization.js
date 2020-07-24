@@ -11,6 +11,8 @@ google.charts.load('current', {'packages':['table']});
 google.charts.setOnLoadCallback(initTable);
 google.charts.setOnLoadCallback(drawTable);
 
+var noEntries = true;
+
 function initTable(){
   /** Sets DataTable and table global variables */
   data = new google.visualization.DataTable();
@@ -22,7 +24,9 @@ function initTable(){
 };
 
 socket.on('update table', function(jsonData){
-  console.log("recieved update table on visualizaiton")
+  /** Calls function that updates and redraws table.
+   */
+  console.log("recieved update table on visualization");
   updateTable(jsonData); //update table with json from the database
   drawTable();
 });
@@ -31,26 +35,35 @@ function updateTable(jsonData) {
   /** Updates table with new values. If a sensor doesn't exist, create new row and populate it.
    *   var jsonData = ["testName", "testValue", "2000-01-01 00:00:01"]
   */
-  console.log("RUNNING UPDATE TABLE")
-  console.log("jsonData: " + jsonData)
-  print(jsonData)
+  console.log("RUNNING UPDATE TABLE");
+  console.log("jsonData: " + jsonData);
+  var parsedData = JSON.parse(jsonData);
+  console.log(parsedData)
   // Id of the sensor
-  var id = jsonData[0]
-  var value = jsonData[1]
-  var timestamp = jsonData[2]
+  var id = parsedData[0]
+  console.log("id: " + id)
+  var value = parsedData[1]
+  var timestamp = parsedData[2]
   // Gets exisiting ids of sensors in the tables
   var existing_ids = data.getDistinctValues(0) // Type: Object array
+  console.log("existing ids: " + existing_ids)
+
+  if (noEntries == true){
+    data.addRow(parsedData);
+    noEntries = false;
+  }
 
   // Check whether sensor already exists in the table.
   for (i = 0; i < existing_ids.length; i++) {
     // If row with matching sensor name exists, updates existing row
     if (id == existing_ids[i]){
-      data.setCell(i, 1, value)  // setCell(row, column)
-      data.setCell(i, 2, timestamp)
+      console.log("i: " + existing_ids[i]);
+      data.setCell(i, 1, value);  // setCell(row, column)
+      data.setCell(i, 2, timestamp);
     }
     else{
       // Create a new row and populate
-      data.addRow(jsonData);
+      data.addRow(parsedData);
     }
   }
 };

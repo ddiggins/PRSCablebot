@@ -1,9 +1,9 @@
 """ Module for keeping and logging data in the system """
-
-import time
 import json
 from datetime import datetime
 import sqlConnector
+from flask_socketio import SocketIO, emit, send
+import time
 
 class Logger:
     """ Reads commands from serial, logs them, and reports them to the website """
@@ -49,7 +49,9 @@ class Logger:
 
         if 'id' in data:
             object_id = data["id"]
+            # self.socketio.emit("update", line, json=True)
             self.socketio.emit("update", line, json=True)
+
             # Creates data dict with current states of objects(sensors, motors...)
             self.data_dict[object_id] = data
         return data

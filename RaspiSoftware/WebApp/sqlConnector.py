@@ -1,10 +1,10 @@
 """ Connector for SQL database for sensor logging and data retrieval """
-
 import mysql.connector
 import time
 from multiprocessing import Process, Queue, Lock
 import datetime
 import json
+from flask_socketio import SocketIO, emit, send
 
 class SQLConnector:
     """ A wrapper for mySQL to handle data dumps and requests """
@@ -164,6 +164,7 @@ class SQLConnector:
         '''
         Will run as a background process constantly checking the database to see whether
         the records have been updated. If new record appears, it broadcases it as a json message.
+        The json message is picked up by visualization.js and processed.
         '''
         old_record = request_record(('*', 1, 'timestamp'), request_queue, answer_queue, lock)
         
@@ -186,10 +187,13 @@ class SQLConnector:
                 new_record = (new_record[2], new_record[3], new_record[1])
                 new_record = json.dumps(new_record, default = myconverter) # Converts into Json
                 print("json new record: ", new_record)
-                self.socketio.emit("update table", new_record, json= True)
+                # self.socketio.emit("update table", new_record)
+                self.socketio.emit("update table", new_record, broadcast = True)
                 print("emited update table")
 
-
+def ack():
+    print('message was recieved')
+    
 def request_record(record, request_queue, answer_queue, lock):
     """ Requests one or more records from the database 
     record: (name of variable, number of records wanted, variable to sort by, tablename)
