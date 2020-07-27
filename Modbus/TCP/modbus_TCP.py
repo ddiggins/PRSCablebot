@@ -45,7 +45,7 @@ def run_sync_client():
     log.debug(rr.registers[0])
     decoder = BinaryPayloadDecoder.fromRegisters(rr.registers,
                                                  byteorder=Endian.Big)
-    
+
     decoded = OrderedDict([
         ('value', decoder.decode_32bit_float()),
         ('qualityId', decoder.decode_16bit_uint()),
@@ -60,6 +60,9 @@ def run_sync_client():
 
     # Close Client
     client.close()
+
+
+
 
 if __name__ == "__main__":
     run_sync_client()
