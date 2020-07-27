@@ -9,7 +9,7 @@
 # from pymodbus.client.asynchronous.twisted import ModbusClientProtocol
 
 # Import Necessary Modules for Syncronous Communication
-from pymodbus.client.sync import ModbusSerialClient as ModbusClient
+from pymodbus.client.sync import ModbusTcpClient as ModbusClient
 
 # Import Propper Framer (RTU -- Page 36 of Manuel)
 from pymodbus.transaction import ModbusRtuFramer as ModbusFramer
@@ -34,7 +34,7 @@ def run_sync_client():
 
     # Specify target device
     log.debug("Reading Coils")
-    rr = client.read_coils(1, 1, unit=UNIT)
+    rr = client.read_coils(0, 16, unit=UNIT)
     log.debug(rr)
 
     # Close Client

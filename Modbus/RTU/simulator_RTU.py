@@ -8,17 +8,19 @@ from pymodbus.device import ModbusDeviceIdentification
 from pymodbus.datastore import ModbusSequentialDataBlock
 from pymodbus.transaction import ModbusRtuFramer
 
+# Import and Configure Logging
 import logging
-
 logging.basicConfig()
 log = logging.getLogger()
 log.setLevel(logging.DEBUG)
 
 
+block = ModbusSequentialDataBlock(0x00, [0]*0xfe)
+
 store = ModbusSlaveContext(
-    di=ModbusSequentialDataBlock(0, [17]*100),
-    co=ModbusSequentialDataBlock(0, [17]*100),
-    hr=ModbusSequentialDataBlock(0, [17]*100),
-    ir=ModbusSequentialDataBlock(0, [17]*100))
+    di=block,
+    co=block,
+    hr=block,
+    ir=block)
 context = ModbusServerContext(slaves=store, single=True)
 StartSerialServer(context, framer=ModbusRtuFramer, port='/dev/tty0')
