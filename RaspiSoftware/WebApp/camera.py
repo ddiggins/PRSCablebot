@@ -50,6 +50,7 @@ class Camera:
                 print("ADDED TO QUEUE")
 
 def start_camera(resolution, interval, image_folder_path, record_queue):
+    print('running camera')
     camera = Camera(resolution, interval, image_folder_path, record_queue)
     camera.run_camera()
 

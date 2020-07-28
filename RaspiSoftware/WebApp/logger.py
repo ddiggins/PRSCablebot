@@ -1,12 +1,12 @@
 """ Module for keeping and logging data in the system """
-
-import time
 import json
 from datetime import datetime
 import sqlConnector
+from flask_socketio import SocketIO, emit, send
+import time
 
 class Logger:
-    """ Reads commands from serial, logs them, and reports tem to the website """
+    """ Reads commands from serial, logs them, and reports them to the website """
 
     def __init__(self, incoming_commands, outgoing_commands, lock, socketio, log_file,\
         connector_queues):
@@ -49,7 +49,9 @@ class Logger:
 
         if 'id' in data:
             object_id = data["id"]
+            # self.socketio.emit("update", line, json=True)
             self.socketio.emit("update", line, json=True)
+
             # Creates data dict with current states of objects(sensors, motors...)
             self.data_dict[object_id] = data
         return data
@@ -70,8 +72,10 @@ class Logger:
         self.log_file.flush()
 
         # Write records to database
-        self.connector_queues[1].put((datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3],\
-            str(data_dict["id"]), str(list(data_dict.values())[2])))
+        if len(list(data_dict.values())) == 3: # If the record has data associated
+            self.connector_queues[1].put((datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3],\
+                str(data_dict["id"]), str(list(data_dict.values())[2]))) # Add data to database
+        print("writing to the database")
 
     def run_logger(self):
         """ Runs the logger continuously. Designed to be run in a separate thread """

@@ -28,10 +28,17 @@ int TempSensor::run(){
         if (enabled.value.toInt()){
             Serial.print(F("{\"id\" : \""));
             Serial.print(id_name());
+            Serial.print(F("Temp"));
             Serial.print(F("\", \"enabled\" : "));
             Serial.print(enabled.value);
             Serial.print(F(", \"temperature\" : "));
-            Serial.print(sensor.readTemperature()); 
+            Serial.print(sensor.readTemperature());
+            Serial.println(F("}")); 
+            Serial.print(F("{\"id\" : \""));
+            Serial.print(id_name());
+            Serial.print(F("Humidity"));
+            Serial.print(F("\", \"enabled\" : "));
+            Serial.print(enabled.value);
             Serial.print(F(", \"humidity\" : "));
             Serial.print(sensor.readHumidity()); 
             Serial.println(F("}"));
