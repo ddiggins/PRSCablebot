@@ -1,0 +1,40 @@
+ID,param,register,address,unit_id,unit_abbr
+1,Temperature,5451,5450,1,°C
+2,Pressure,5458,5457,17,PSI
+3,Depth,5465,5464,38,feet
+4,"Level, Depth to Water",5472,5471,38,feet
+5,"Level, Surface Elevation",5479,5478,38,feet
+9,Actual Conductivity,5507,5506,65,µS/cm
+10,Specific Conductivity,5514,5513,65,µS/cm
+11,Resistivity,5521,5520,81,ohm-cm
+12,Salinity,5528,5527,97,PSU
+13,Total Dissolved Solids,5535,5534,114,ppt
+14,Density of Water,5542,5541,129,g/cm3
+16,Barometric Pressure,5556,5555,22,mmHg
+17,pH,5563,5562,145,pH
+18,pH mV,5570,5569,162,mV
+19,ORP,5577,5576,162,mV
+20,Dissolved Oxygen Concentration,5584,5583,117,mg/L
+21,Dissolved Oxygen % Saturation,5591,5590,177,% saturation
+24,Chloride (Cl-),5612,5611,117,mg/L
+25,Turbidity,5619,5618,194,NTU
+30,Oxygen Partial Pressure,5654,5653,26,torr
+31,Total Suspended Solids,5661,5660,117,mg/L
+32,External Voltage,5668,5667,163,Volts
+33,Battery Capacity (remaining),5675,5674,241,%
+34,Rhodamine WT Concentration,5682,5681,118,µg/L
+35,Rhodamine WT Fluorescence Intesity,5689,5688,257,RFU
+36,Chloride (Cl-) mV,5696,5695,162,mV
+37,Nitrate as Nitrogen (NO3 as N) Concentration,5703,5702,117,mg/L
+39,Ammonium as Nitrogen (NH4 as N) Concentration,5717,5716,117,mg/L
+40,Ammonium (NH4) mV,5724,5723,162,mg/L
+41,Ammonia as Nitrogen (NH3 as N) Concentration,5731,5730,117,mg/L
+42,Total Ammonia as Nitrogen (NH3 as N) Concentration,5738,5737,117,mg/L
+48,Eh,5780,5779,162,mg/L
+49,Velocity,5787,5786,118,µg/L
+50,Chlorophyll-a Concentration,5894,5793,118,μg/L
+51,Chlorophyll-a Fluorescence Intensity,5801,5800,257,RFU
+54,Blue Green Algae - Phycocyanin Concentration,5822,5821,118,μg/L
+55,Blue Green Algae - Phycocyanin Fluorescence Intensity,5829,5828,257,RFU
+58,Blue Green Algae - Phycocerythrin Concentration,5850,5849,118,μg/L
+59,Blue Green Algae – Phycocerythrin Fluorescence Intensity,5857,5856,257,RFU

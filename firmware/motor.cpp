@@ -37,7 +37,7 @@ int Motor::run() {
         //     stopped = 1;
         // }
 
-        if (enabled.value.toInt() && !stopped) {
+        if (enabled.value.toInt()) {
 
             if (mode.value.toDouble()){
                 // Encoder control
