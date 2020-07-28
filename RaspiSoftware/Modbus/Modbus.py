@@ -39,9 +39,7 @@ class Modbus:
         self.log = log
         self.sensors = []
         self.begin_comms()
-        data = self.read_sensor(5450)
-        self.log.debug(self.sensors)
-        self.log.debug(data)
+        
         self.AppendixB = csv_to_dictionary('AppendixB_paramNumsAndLocations.csv')
         self.AppendixC = csv_to_dictionary('AppendixC_unitIDs.csv')
 
@@ -118,11 +116,21 @@ class Modbus:
             param_register = (int(param_id)-1)*7+5451
             enabled_registers.append(param_register)
 
-        return enabled_registers   
+        return enabled_registers
+    
+    def get_param_id_properties(self, param_id):
+        properties = self.AppendixB.get(param_id)
+        return properties
+        # pass
+
+    def get_unit_id_properties(self, unit_id):
+        properties = self.AppendixC.get(unit_id)
+        return properties
+
 
 if __name__ == "__main__":
     modbus = Modbus(log)
     register_nums = modbus.get_registers_list()
-    # print(modbus.AppendixB)
-    # print(modbus.AppendixC)
+    data = modbus.read_sensor(5450)
+    log.debug(data)
 

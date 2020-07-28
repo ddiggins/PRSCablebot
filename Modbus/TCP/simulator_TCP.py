@@ -94,8 +94,9 @@ do_sensor = Sensor(14.35, 0, 117, 20, 0.0)
 Builder = BinaryPayloadBuilder(byteorder=Endian.Big)
 
 numbers = add_sensors(Builder, [temp_sensor])
-create_space(Builder, 1121*16)
+create_space(Builder, 1120*16)
 # create_space(Builder, 1)
+log.debug(numbers)
 create_enabled_builder(Builder, numbers)
 
 
