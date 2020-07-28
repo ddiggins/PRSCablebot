@@ -7,9 +7,9 @@
 #include "object.h"
 #include "motor.h"
 #include "sensor.h"
-// #include "tempSensor.h"
-// #include "leakSensor.h"
-// #include "encoder.h"
+#include "tempSensor.h"
+#include "leakSensor.h"
+#include "encoder.h"
 
 
 // {"id":"Motor1", "enabled":"1", "mode":"1", "target":"1000"}
@@ -43,7 +43,7 @@ void loop(){
 
     // Define objects
     Sensor sensor("Sensor1");
-    Motor motor("Motor1");
+    // Motor motor("Motor1");
     // TempSensor tempsensor("tempsensor");
     // LeakSensor foreleak("foreleak", 13);
     // LeakSensor aftleak("aftleak", 12);

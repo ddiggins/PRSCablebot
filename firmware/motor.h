@@ -22,11 +22,12 @@ class Motor: public GenericObject{
     Attribute enabled = {"enabled", "0"};
     Attribute speed = {"speed", "1"};
     Attribute mode = {"mode", "1"}; // Possible modes are speed (0) and position (1)
-    Attribute update_rate = {"updateRate", "10"};
+    Attribute update_rate = {"updateRate", "1"};
     Attribute target = {"target", "0"}; // Target to run to (steps)
     unsigned long last_time = 0;  // Variable for motor update update_rate
     int update_delay = 1000;  // Milliseconds between sensor printouts
     unsigned long update_time = 0;  // Variable for printout timing
+    unsigned long update_time_fast = 0;
 
     // Pin for the motor
     int motorPWM = 9;

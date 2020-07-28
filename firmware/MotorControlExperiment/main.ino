@@ -11,10 +11,15 @@ int motorPin = 9;
 int pin1 = 2;
 int pin2 = 3;
 
-int target = 1000;
+double target = 2;
 int error = 0;
 int pwm = 0;
 String str;
+long last_time = 0;
+double last_position = 0;
+double new_position = 0;
+double speed = 0;
+long new_time = 0;
 
 
 //Global variables for PID input/output
@@ -22,7 +27,7 @@ double Setpoint, Input, Output = 0.0;
 
 
 //Global PID tuning parameters
-double Kp=1, Ki=0.05, Kd=0.01;
+double Kp=100, Ki=50, Kd=0;
 
 // Define pid class with pointers to global variables
 PID pid(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
@@ -55,7 +60,13 @@ void loop(){
             target = Serial.readStringUntil('\n').toDouble();
         }
 
-        Input = target - encoder->read(); // Calculate error
+        last_position = encoder->read();
+        last_time = millis();
+
+
+
+        // Input = target - encoder->read(); // Calculate error
+        Input = target - speed; // Calculate error
         pid.Compute();
 
         pwm = Output + 1500;
@@ -75,7 +86,16 @@ void loop(){
         Serial.print("   Input: ");
         Serial.print(Input);
         Serial.print("    Output: ");
-        Serial.println(Output);
+        Serial.print(Output);
+        Serial.print("    Speed: ");
+        Serial.println(speed);
+
+
+        new_position = encoder->read();
+        new_time = millis();
+
+        speed = (new_position - last_position) / ((double) new_time - (double) last_time);
+
     }
 
 

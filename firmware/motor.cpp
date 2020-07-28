@@ -29,9 +29,9 @@ int Motor::update(JsonDocument* params) {  // Same as doc
 
 int Motor::run() {
 
+    if ((millis()-update_time_fast) > 10) {
+        update_time_fast = millis();
 
-    if ((millis()-update_time) > 1000/update_rate.value.toInt()) {
-        update_time = millis();
         // // Emergency stop
         // if (!digitalRead(stop_pin)) {
         //     stopped = 1;
@@ -50,9 +50,6 @@ int Motor::run() {
                 pid->Compute();
                 pwm = Output + 1500;
                 motor.writeMicroseconds(pwm);
-                Serial.print(Output);
-                Serial.print(", ");
-                Serial.println(Input);
 
             }
 
@@ -73,7 +70,10 @@ int Motor::run() {
                 motor.detach();
             }
         }
+    }
 
+    if ((millis()-update_time) > 1000/update_rate.value.toInt()) {
+        update_time = millis();
 
 
         // Prints serial output
@@ -94,7 +94,9 @@ Motor::Motor(String name, MotorEncoder* encoder_in) {
     attributes.attrs[1] = &enabled;
     attributes.attrs[2] = &update_rate;
     attributes.attrs[3] = &speed;
-    attributes.number = 4;
+    attributes.attrs[4] = &mode;
+    attributes.attrs[5] = &target;
+    attributes.number = 6;
     pinMode(stop_pin, INPUT_PULLUP);
     encoder = encoder_in;
 
