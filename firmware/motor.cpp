@@ -34,7 +34,7 @@ int Motor::run() {
             stopped = 1;
         }
 
-        if (enabled.value.toInt() && !stopped) {
+        if (enabled.value.toInt()) {
 
             // Prints serial output
             Serial.print(F("{\"id\" : \""));
