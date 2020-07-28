@@ -29,6 +29,7 @@ socket.on('update table', function(jsonData){
   console.log("recieved update table on visualization");
   updateTable(jsonData); //update table with json from the database
   drawTable();
+  data.sort([{column: 2}, {column: 1}]);
 });
 
 function updateTable(jsonData) {
@@ -38,29 +39,55 @@ function updateTable(jsonData) {
   console.log("RUNNING UPDATE TABLE");
   console.log("jsonData: " + jsonData);
   var parsedData = JSON.parse(jsonData);
-  console.log(parsedData)
+  console.log(parsedData);
   // Id of the sensor
-  var id = parsedData[0]
-  console.log("id: " + id)
-  var value = parsedData[1]
-  var timestamp = parsedData[2]
+  var id = parsedData[0];
+  console.log("id: " + id);
+  var value = parsedData[1];
+  var timestamp = parsedData[2];
+
+  //sort data according to column 1 in ascending order
+  data.sort({column: 0});
   // Gets exisiting ids of sensors in the tables
-  var existing_ids = data.getDistinctValues(0) // Type: Object array
-  console.log("existing ids: " + existing_ids)
+  var existing_ids = data.getDistinctValues(0); // Type: Object array in ascending order
+  console.log("existing ids: " + existing_ids);
+
+  if (noEntries == true){
+    data.addRow(parsedData);
+    console.log("creating new row from noEntries")
+    noEntries = false;
+    existing_ids = data.getDistinctValues(0); // Update existing id to new value
+
+  }
 
   // Check whether sensor already exists in the table.
-  for (i = 0; i < existing_ids.length; i++) {
-    // If row with matching sensor name exists, updates existing row
-    if (id == existing_ids[i]){
-      console.log("i: " + existing_ids[i]);
-      data.setCell(i, 1, value);  // setCell(row, column)
-      data.setCell(i, 2, timestamp);
-    }
-    else{
-      // Create a new row and populate
-      data.addRow(parsedData);
-    }
+  // for (i = 0; i < existing_ids.length; i++) {
+  //   // If row with matching sensor name exists, updates existing row
+  //   if (id == existing_ids[i]){
+  //     console.log("i: " + existing_ids[i]);
+  //     console.log('updating old row');
+  //     data.setCell(i, 1, value);  // setCell(row, column)
+  //     data.setCell(i, 2, timestamp);
+  //   } else {
+  //     console.log('creating new row');
+  //     // Create a new row and populate
+  //     data.addRow(parsedData);
+  //   }
+  // }
+
+  if (existing_ids.includes(id)){
+    i = existing_ids.indexOf(id)
+    console.log("i: " + existing_ids[i]);
+    console.log('updating old row');
+    data.setCell(i, 1, value);  // setCell(row, column)
+    data.setCell(i, 2, timestamp);
   }
+  else {
+    console.log('creating new row');
+    // Create a new row and populate
+    data.addRow(parsedData);
+  }
+
 };
 
 

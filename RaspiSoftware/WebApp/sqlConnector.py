@@ -170,14 +170,15 @@ class SQLConnector:
         
         while 1:
             # Checks database for updates every second
-            time.sleep(2)
+            # time.sleep(1)
         
             new_record = request_record(('*', 1, 'timestamp'), request_queue, answer_queue, lock)
-            print ("NEW RECORD: ", new_record)
-            print ("OLD RECORD: ", old_record)
+            # print ("NEW RECORD: ", new_record)
+            # print ("OLD RECORD: ", old_record)
+            
             # Check that the record has updated.
             record_equality = (new_record == old_record)
-            print ("RECORD EQUALITY: ", record_equality)
+            # print ("RECORD EQUALITY: ", record_equality)
             # if (new_record != old_record):
             if (record_equality == False):
                 # Update old record to new record since we already compared them
