@@ -19,6 +19,7 @@ from pymodbus.compat import iteritems
 from collections import OrderedDict
 import struct
 import logging
+from datetime import datetime
 from table_extractor import csv_to_dictionary
 
         
@@ -38,10 +39,13 @@ class Modbus:
         self.client = ModbusClient('localhost', port=5020, framer=ModbusFramer)
         self.log = log
         self.sensors = []
-        self.begin_comms()
         
+        # Creates appendixes
         self.AppendixB = csv_to_dictionary('AppendixB_paramNumsAndLocations.csv')
         self.AppendixC = csv_to_dictionary('AppendixC_unitIDs.csv')
+        
+        self.begin_comms()
+         
 
     def begin_comms(self):
         """Creates coonnection with the AquaTROLL and follow wakeup procedure.
@@ -53,6 +57,21 @@ class Modbus:
         return True
 
 
+    def collect_data(self):
+        """Given the list of sensors (self.sensors) collect all sensor data
+        and return it as a list of dictionaries"""
+        data = []
+        
+        for sensor in self.sensors:
+            measurement = self.read_sensor(sensor['address'])
+            data_point = {'sensor':"" + self.AppendixB[measurement['param_id']]['param'] + " " + self.AppendixB[measurement['param_id']]['unit_abbr'],
+                          'value':measurement['value'],
+                          'timestamp':datetime.now().isoformat()}
+            data.append(data_point)
+        return data
+            
+        
+
     def read_sensor(self, address):
         """Reads the registers from a sensor given the sensor address
          A sensor consists of 7 registers which encode the data and other parameters
@@ -63,9 +82,9 @@ class Modbus:
         decoder = BinaryPayloadDecoder.fromRegisters(rr.registers, byteorder=Endian.Big)
         decoded = OrderedDict([
             ('value', decoder.decode_32bit_float()),
-            ('qualityId', decoder.decode_16bit_uint()),
-            ('unitId', decoder.decode_16bit_float()),
-            ('paramId', decoder.decode_16bit_uint()),
+            ('quality_id', decoder.decode_16bit_uint()),
+            ('unit_id', decoder.decode_16bit_float()),
+            ('param_id', decoder.decode_16bit_uint()),
             ('sentinel', decoder.decode_32bit_float())
         ])
         
@@ -75,8 +94,9 @@ class Modbus:
         
         return data
 
+
     def read_register(self, address, count):
-        """ Reads a register number and returns a list of bits"""
+        """Reads a register number and returns a list of bits"""
 
         rr = self.client.read_holding_registers(address, count, unit=UNIT)
         decoder = BinaryPayloadDecoder.fromRegisters(rr.registers, byteorder=Endian.Big)
@@ -89,26 +109,27 @@ class Modbus:
         
         return res
 
+
     def init_sensor_discovery(self):
-        '''
-        Reads a 14 register block that starts with 6984 that triggers the sonde to scan 
+        """Reads a 14 register block that starts with 6984 that triggers the sonde to scan 
         its sensor ports and update its sensor map. There are a total of 219 parameter IDs. 
         A total of 59 parameters exist.
+
         Returns: list of ids that have enabled sensors
-        '''   
+        """   
         res = self.read_register(6983,14) # 6984-1 not sure if correct
         enabled = []
 
-        enabled = [i for i in range(224) if res[i]]
+        enabled = [self.AppendixB[i] for i in range(224) if res[i]]
         # self.log.debug(enabled)
-        
+
         return enabled
 
+
     def get_registers_list(self):
-        '''
-        Returns a list of register numbers of enabled sensors given 
+        """ Returns a list of register numbers of enabled sensors given 
         a list of enabled sensor ids.
-        '''
+        """
         enabled_id_list = self.init_sensor_discovery()
         enabled_registers = []
 
@@ -118,10 +139,15 @@ class Modbus:
 
         return enabled_registers
     
-    def get_param_id_properties(self, param_id):
-        properties = self.AppendixB.get(param_id)
+
+    def get_param_id_properties(self, param_id, prop_requested = "all"):
+        """Returns property 
+        """
+        if prop_requested == "all":
+            properties = self.AppendixB.get(param_id)
+            
         return properties
-        # pass
+
 
     def get_unit_id_properties(self, unit_id):
         properties = self.AppendixC.get(unit_id)
@@ -130,7 +156,9 @@ class Modbus:
 
 if __name__ == "__main__":
     modbus = Modbus(log)
-    register_nums = modbus.get_registers_list()
     data = modbus.read_sensor(5450)
+    modbus.collect_data()
     log.debug(data)
+    log.debug(modbus.sensors)
+
 

@@ -1,4 +1,4 @@
-ID,Parameter Name,Holding Register Number,Holding Register Address,Default Unit ID,Default Unit Abbreviation
+ID,param,register,address,unit_id,unit_abbr
 1,Temperature,5451,5450,1,°C
 2,Pressure,5458,5457,17,PSI
 3,Depth,5465,5464,38,feet

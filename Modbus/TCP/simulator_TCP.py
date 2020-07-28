@@ -93,7 +93,7 @@ do_sensor = Sensor(14.35, 0, 117, 20, 0.0)
 
 Builder = BinaryPayloadBuilder(byteorder=Endian.Big)
 
-numbers = add_sensors(Builder, [temp_sensor])
+numbers = add_sensors(Builder, [temp_sensor, depth_sensor, ph_sensor, do_sensor])
 create_space(Builder, 1120*16)
 # create_space(Builder, 1)
 log.debug(numbers)

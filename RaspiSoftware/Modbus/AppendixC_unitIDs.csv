@@ -1,4 +1,4 @@
-ID,Abbreviation,Units
+ID,unit_abbr,unit
 1,C,Celsius
 2,F,Fahrenheit
 3,K,Kelvin
