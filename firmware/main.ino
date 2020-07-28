@@ -12,6 +12,8 @@
 #include "encoder.h"
 
 
+// {"id":"Motor1", "enabled":"1", "mode":"1", "target":"1000"}
+
 
 // Test JSON: {"id" : "Sensor1", "enabled" : "1"}
 // Test for motor: {"id":"Motor1","speed":".5"}
@@ -41,11 +43,11 @@ void loop(){
 
     // Define objects
     Sensor sensor("Sensor1");
-    Motor motor("Motor1");
     TempSensor tempsensor("tempsensor");
     LeakSensor foreleak("foreleak", 13);
     LeakSensor aftleak("aftleak", 12);
     MotorEncoder encoder("encoder");
+    Motor motor("Motor1", &encoder);
     // LeakSensor newleak("newleak", 14);
     // LeakSensor new2leak("new2leak", 15);
 

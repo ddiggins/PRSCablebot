@@ -4,6 +4,8 @@
 // Includes
 #include <ArduinoJson.h>
 #include <Servo.h>
+// #include <Encoder.h>
+#include <PID_v1.h>
 #include "object.h"
 #include "motor.h"
 
@@ -27,42 +29,66 @@ int Motor::update(JsonDocument* params) {  // Same as doc
 
 int Motor::run() {
 
-    if ((millis()-update_time) > 1000/update_rate.value.toInt()) {
 
-        // Emergency stop
-        if (!digitalRead(stop_pin)) {
-            stopped = 1;
-        }
+    if ((millis()-update_time) > 1000/update_rate.value.toInt()) {
+        update_time = millis();
+        // // Emergency stop
+        // if (!digitalRead(stop_pin)) {
+        //     stopped = 1;
+        // }
 
         if (enabled.value.toInt() && !stopped) {
 
-            // Prints serial output
-            Serial.print(F("{\"id\" : \""));
-            Serial.print(id_name());
-            Serial.print(F("\", \"enabled\" : "));
-            Serial.print(enabled.value);
-            Serial.print(F(", \"speed\" : "));
-            Serial.print(speed.value);
-            Serial.println(F("}"));
+            if (mode.value.toDouble()){
+                // Encoder control
 
-            // Update Motor speed
-            int timeOn = int(speed.value.toDouble()*500.0+1500.0);
-            if (!motor.attached()) {
-                motor.attach(motorPWM);
+                if (!motor.attached()) {
+                    motor.attach(motorPWM);
+                }
+
+                Input = target.value.toDouble() - encoder->encoder->read(); // Calculate error
+                pid->Compute();
+                pwm = Output + 1500;
+                motor.writeMicroseconds(pwm);
+                Serial.print(Output);
+                Serial.print(", ");
+                Serial.println(Input);
+
             }
-            motor.writeMicroseconds(timeOn);
+
+            else{
+
+                // Update Motor speed
+                int timeOn = int(speed.value.toDouble()*500.0+1500.0);
+                if (!motor.attached()) {
+                    motor.attach(motorPWM);
+                }
+                motor.writeMicroseconds(timeOn);
+
+            }
+
 
         } else {
             if (motor.attached()) {
                 motor.detach();
             }
         }
-    update_time = millis();
+
+
+
+        // Prints serial output
+        Serial.print(F("{\"id\" : \""));
+        Serial.print(id_name());
+        Serial.print(F("\", \"enabled\" : "));
+        Serial.print(enabled.value);
+        Serial.print(F(", \"speed\" : "));
+        Serial.print(speed.value);
+        Serial.println(F("}"));
     }
 }
 
 
-Motor::Motor(String name) {
+Motor::Motor(String name, MotorEncoder* encoder_in) {
     id.value = name;
     attributes.attrs[0] = &id;  // id must always come first
     attributes.attrs[1] = &enabled;
@@ -70,6 +96,13 @@ Motor::Motor(String name) {
     attributes.attrs[3] = &speed;
     attributes.number = 4;
     pinMode(stop_pin, INPUT_PULLUP);
+    encoder = encoder_in;
+
+    pid->SetMode(AUTOMATIC);
+    pid->SetOutputLimits(-500, 500);
+
+    // Set sample rate of the PID loop to 100 times per second (Default 10)
+    pid->SetSampleTime(10);
 }
 
 

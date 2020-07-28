@@ -25,10 +25,11 @@ class MotorEncoder: public GenericObject{
     int pin1 = 2;
     int pin2 = 3;
 
-    // Create a servo object for the motor
-    Encoder* encoder = new Encoder(pin1, pin2);
 
  public:
+
+    // Create a servo object for the motor
+    Encoder* encoder = new Encoder(pin1, pin2);
     // Attributes of sensor
     Attribute id = {"id", "Generic Sensor"};
 

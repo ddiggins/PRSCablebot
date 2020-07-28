@@ -7,7 +7,7 @@
 
 
 Servo motor;
-int motorPin = 13;
+int motorPin = 9;
 int pin1 = 2;
 int pin2 = 3;
 
