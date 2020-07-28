@@ -5,7 +5,7 @@ import sys
 import time
 from multiprocessing import Queue
 import serial
-from flask_socketio import SocketIO, join_room, emit, send
+# TODO: Remove if uncessary: from flask_socketio import SocketIO, join_room, emit, send
 from threading import Lock
 
 
@@ -31,15 +31,15 @@ def send_command(ser, command):
     ser.write((command + "\r\n").encode())
     print("writing Command")
     print("Command written: " + (command + "\r\n"))
+    return 1
 
 def receive_command(ser):
     """ Reads one line from serial """
     try:
         output = ser.readline().decode()
         return output
-
     except serial.SerialException:
-        print ("read failed")
+        print("read failed")
         return ""
 
 def run_communication(input_commands, output_commands, lock):
