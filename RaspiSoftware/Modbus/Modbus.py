@@ -18,30 +18,42 @@ from pymodbus.constants import Endian
 from pymodbus.compat import iteritems
 from collections import OrderedDict
 import struct
-
-# Configure Client Logging
 import logging
+from table_extractor import csv_to_dictionary
+
+        
 FORMAT = ('%(asctime)-15s %(threadName)-15s'
-          ' %(levelname)-8s %(module)-15s:%(lineno)-8s %(message)s')
+    ' %(levelname)-8s %(module)-15s:%(lineno)-8s %(message)s')
 logging.basicConfig(format=FORMAT)
 log = logging.getLogger()
 log.setLevel(logging.DEBUG)
-
 
 UNIT = 0x0
 
 class Modbus:
 
     def __init__(self, log):
-        """Creates Modbus object
-        Connects to device using Modbus serial
-        Instaniates logger"""
-        # Connect
-        self.client = ModbusClient('localhost', port=5020, framer=ModbusFramer)
-        self.client.connect()
-        self.log = log
-
+        """Creates Modbus object, defines client, log, and empty sensor list"""
         
+        self.client = ModbusClient('localhost', port=5020, framer=ModbusFramer)
+        self.log = log
+        self.sensors = []
+        self.begin_comms()
+        data = self.read_sensor(5450)
+        self.log.debug(self.sensors)
+        self.log.debug(data)
+        self.AppendixB = csv_to_dictionary('AppendixB_paramNumsAndLocations.csv')
+        self.AppendixC = csv_to_dictionary('AppendixC_unitIDs.csv')
+
+    def begin_comms(self):
+        """Creates coonnection with the AquaTROLL and follow wakeup procedure.
+        This involves sending a wake-up command and reading the sensors"""
+        
+        self.client.connect()
+        #TODO: Insert wakeup command
+        self.sensors = self.init_sensor_discovery()
+        return True
+
 
     def read_sensor(self, address):
         """Reads the registers from a sensor given the sensor address
@@ -50,10 +62,7 @@ class Modbus:
 
         data = {}
         rr = self.client.read_holding_registers(address, 7, unit=UNIT)
-
-        decoder = BinaryPayloadDecoder.fromRegisters(rr.registers,
-                                                 byteorder=Endian.Big)
-        
+        decoder = BinaryPayloadDecoder.fromRegisters(rr.registers, byteorder=Endian.Big)
         decoded = OrderedDict([
             ('value', decoder.decode_32bit_float()),
             ('qualityId', decoder.decode_16bit_uint()),
@@ -61,10 +70,11 @@ class Modbus:
             ('paramId', decoder.decode_16bit_uint()),
             ('sentinel', decoder.decode_32bit_float())
         ])
-
+        
         for name, value in iteritems(decoded):
             data[name] = value
-            self.log.debug(str(name) + str(value))
+            # self.log.debug(str(name) + str(value))
+        
         return data
 
     def read_register(self, address, count):
@@ -73,10 +83,12 @@ class Modbus:
         rr = self.client.read_holding_registers(address, count, unit=UNIT)
         decoder = BinaryPayloadDecoder.fromRegisters(rr.registers, byteorder=Endian.Big)
         res = []
+        
         for i in range(count*2):
             ret = decoder.decode_bits()
             res.extend(ret)
-            self.log.debug(res)
+        # self.log.debug(res)
+        
         return res
 
     def init_sensor_discovery(self):
@@ -86,27 +98,31 @@ class Modbus:
         A total of 59 parameters exist.
         Returns: list of ids that have enabled sensors
         '''   
-        res = self.read_register(6984,14)
+        res = self.read_register(6983,14) # 6984-1 not sure if correct
         enabled = []
 
         enabled = [i for i in range(224) if res[i]]
-        self.log.debug(enabled)
+        # self.log.debug(enabled)
         
         return enabled
 
     def get_registers_list(self):
         '''
-        Returns a list of registers of enabled sensors given a list of enabled sensor ids.
+        Returns a list of register numbers of enabled sensors given 
+        a list of enabled sensor ids.
         '''
         enabled_id_list = self.init_sensor_discovery()
         enabled_registers = []
 
         for param_id in enabled_id_list:
-            enabled_registers.extend((param_id-1)*7+5451)
+            param_register = (int(param_id)-1)*7+5451
+            enabled_registers.append(param_register)
 
-        return enabled_registers        
+        return enabled_registers   
 
 if __name__ == "__main__":
     modbus = Modbus(log)
-    data = modbus.init_sensor_discovery()
-    log.debug(data)
+    register_nums = modbus.get_registers_list()
+    # print(modbus.AppendixB)
+    # print(modbus.AppendixC)
+

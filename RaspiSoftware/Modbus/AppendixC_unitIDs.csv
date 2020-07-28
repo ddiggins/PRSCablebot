@@ -1,0 +1,84 @@
+ID,Abbreviation,Units
+1,C,Celsius
+2,F,Fahrenheit
+3,K,Kelvin
+17,PSI,Pounds per square inch
+18,Pa,Pascals
+19,kPa,Kilopascals
+20,Bar,Bars
+21,mBar,Millibars
+22,mmHg,Millimeters of Mercury (0° C)
+23,inHg,Inches of Mercury (0° C)
+24,cmH20,Centimeters of water (4° C)
+25,inH20,Inches of water (4° C)
+26,Torr,Torr
+27,atm,Standard atmosphere
+33,mm,Millimeters
+34,cm,Centimeters
+35,m,Meters
+36,km,Kilometers
+37,in,Inches
+38,ft,Feet
+49,deg,Degrees
+50,min,Minutes
+51,sec,Seconds
+65,μS/cm,Microsiemens per centimeter
+66,mS/cm,Millisiemens per centimeter
+81,ohm-cm,Ohm-centimeters
+97,PSU,Practical salinty units
+98,ppt,Parts per thousand salinity
+113,ppm,Parts per million
+114,ppt,Parts per thousand
+115,,(available)
+116,,(available)
+117,mg/L,Milligrams per liter
+118,µg/L,Micrograms per liter
+119,---,"(deprecated, no longer available)"
+120,g/L,Grams per liter
+121,ppb,Parts per billion
+129,g/cm 3,Grams per cubic centimeter
+145,pH,pH 
+161,μV,Microvolts
+162,mV,Millivolts
+163,V,Volts
+177,% sat,Percent saturation
+193,FNU,Formazin nephelometric units
+194,NTU,Nephelometric turbidity units
+195,FTU,Formazin turbidity units
+209,ft3/s,Cubic feet per second
+210,,(available)
+211,,(available)
+212,ft3/day,Cubic feet per day
+213,gal/s,Gallons per second
+214,gal/m,Gallons per minute
+215,gal/hr,Gallons per hour
+216,MGD,Millions of gallons per day
+217,m3/sec,Cubic meters per second
+218,,(available)
+219,m3/hr,Cubic meters per hour
+220,,(available)
+221,L/s,Liters per second
+222,ML/day,Millions of liters per day
+223,mL/min,Milliliters per minute
+224,kL/day,Thousands of liters per day
+225,ft3,Cubic feet
+226,gal,Gallons
+227,Mgal,Millions of gallons
+228,m3,Cubic meters
+229,L,Liters
+230,acre-ft,Acre feet
+231,mL,Milliliters
+232,ML,Millions of liters
+233,kL,Thousands of liters
+234,acre-in,Acre inches
+241,%,Percent
+257,RFU,Relative fluorescence units
+273,ml/sec,Milliliters per second
+274,ml/hr,Milliliters per hour
+275,l/min,Liters per minute
+276,l/hr,Liters per hour
+289,μA,Microamps
+290,mA,Milliamps
+291,A,Amps
+305,ft/s,Feet per second
+306,m/s,Meters per second
