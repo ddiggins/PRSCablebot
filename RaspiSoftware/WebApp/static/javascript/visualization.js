@@ -48,11 +48,6 @@ function updateTable(jsonData) {
   var existing_ids = data.getDistinctValues(0) // Type: Object array
   console.log("existing ids: " + existing_ids)
 
-  if (noEntries == true){
-    data.addRow(parsedData);
-    noEntries = false;
-  }
-
   // Check whether sensor already exists in the table.
   for (i = 0; i < existing_ids.length; i++) {
     // If row with matching sensor name exists, updates existing row
