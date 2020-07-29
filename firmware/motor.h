@@ -21,7 +21,7 @@ class Motor: public GenericObject{
  protected:
     Attribute enabled = {"enabled", "0"};
     Attribute speed = {"speed", "1"};
-    Attribute mode = {"mode", "1"}; // Possible modes are speed (0) and position (1)
+    Attribute mode = {"mode", "1"}; // Possible modes are power (0), position (1), and speed (2)
     Attribute update_rate = {"updateRate", "1"};
     Attribute target = {"target", "0"}; // Target to run to (steps)
     unsigned long last_time = 0;  // Variable for motor update update_rate
@@ -35,22 +35,31 @@ class Motor: public GenericObject{
     int stopped = 0;
     int pwm = 0; // pwm frequency
 
+
+    // Variables for speed pid
+   //  long last_time_s = 1;
+   //  double last_position_s = 0;
+   //  double new_position_s = 0;
+   //  double speed_s = 0;
+   //  long new_time_s = 0;
+
     // Create a servo object for the motor
     Servo motor;
 
     MotorEncoder* encoder;
 
-
-    // pwm
-
     //Global variables for PID input/output
-    double Setpoint, Input, Output = 0.0;
-
+    double Setpoint_p, Input_p, Output_p = 0.0;
+   //  double Setpoint_s, Input_s, Output_s = 0.0;
     //Global PID tuning parameters
-    double Kp=1, Ki=0.05, Kd=0.01;
-
+    double Kp_p=1, Ki_p=0.05, Kd_p=0.01;
+   // double Kp_p=1, Ki_p=0, Kd_p=0;
+   //  double Kp_s=100, Ki_s=50, Kd_s=0;
     // Define pid class with pointers to global variables
-    PID* pid = new PID(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
+   //  PID* pid_p;
+    PID* pid_p = new PID(&Input_p, &Output_p, &Setpoint_p, Kp_p, Ki_p, Kd_p, DIRECT);
+   //  PID* pid_p = new PID(&Input_p, &Output_p, &Setpoint_p, Kp_p, Ki_p, Kd_p, DIRECT);
+   //  PID* pid_s = new PID(&Input_s, &Output_s, &Setpoint_s, Kp_s, Ki_s, Kd_s, DIRECT);
 
  public:
     // Attributes of sensor

@@ -15,7 +15,7 @@ double target = 2;
 int error = 0;
 int pwm = 0;
 String str;
-long last_time = 0;
+long last_time = 1;
 double last_position = 0;
 double new_position = 0;
 double speed = 0;
