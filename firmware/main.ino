@@ -45,18 +45,12 @@ void loop(){
 
     // Define objects
     Sensor sensor("Sensor1");
-    // Motor motor("Motor1");
-    // TempSensor tempsensor("tempsensor");
-    // LeakSensor foreleak("foreleak", 13);
-    // LeakSensor aftleak("aftleak", 12);
-    // MotorEncoder encoder("encoder");
 
     TempSensor tempsensor("tempsensor");
     LeakSensor foreleak("foreleak", 13);
     LeakSensor aftleak("aftleak", 12);
     MotorEncoder encoder("encoder");
     Motor motor("Motor1", &encoder);
-
 
 
     // Add objects to structure
