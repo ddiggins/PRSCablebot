@@ -43,7 +43,7 @@ int Motor::run() {
 
             // Serial.println(encoder->encoder->read());
 
-            if (mode.value.toInt()){
+            if (mode.value.toInt() == 1){
                 // Encoder control
 
                 if (!motor.attached()) {
@@ -52,33 +52,33 @@ int Motor::run() {
 
                 Input_p = target.value.toDouble() - encoder->encoder->read(); // Calculate error
                 pid_p->Compute();
-                Serial.print(Input_p);
-                Serial.print(", ");
-                Serial.println(Output_p);
+                // Serial.print(Input_p);
+                // Serial.print(", ");
+                // Serial.println(Output_p);
                 pwm = Output_p + 1500;
                 // Serial.println(Output_p);
                 motor.writeMicroseconds(pwm);
 
             }
 
-            // else if(mode.value.toInt() == 2){
+            else if(mode.value.toInt() == 2){
 
-            //     new_position_s = encoder->encoder->read();
-            //     new_time_s = millis();
-            //     speed_s = (new_position_s - last_position_s) / ((double) new_time_s - (double) last_time_s);
+                new_position_s = encoder->encoder->read();
+                new_time_s = millis();
+                speed_s = (new_position_s - last_position_s) / ((double) new_time_s - (double) last_time_s);
 
-            //     if (!motor.attached()) {
-            //         motor.attach(motorPWM);
-            //     }
+                if (!motor.attached()) {
+                    motor.attach(motorPWM);
+                }
 
-            //     Input_s = target.value.toDouble() - speed_s; // Calculate error
-            //     pid_s->Compute();
-            //     pwm = Output_s + 1500;
-            //     motor.writeMicroseconds(pwm);
+                Input_s = target.value.toDouble() - speed_s; // Calculate error
+                pid_s->Compute();
+                pwm = Output_s + 1500;
+                motor.writeMicroseconds(pwm);
 
-            //     last_position_s = encoder->encoder->read();
-            //     last_time_s = millis();
-            // }
+                last_position_s = encoder->encoder->read();
+                last_time_s = millis();
+            }
 
             else{
 
@@ -130,12 +130,12 @@ Motor::Motor(String name, MotorEncoder* encoder_in) {
 
     pid_p->SetMode(AUTOMATIC);
     pid_p->SetOutputLimits(-500, 500);
-    // pid_s->SetMode(AUTOMATIC);
-    // pid_s->SetOutputLimits(-500, 500);
+    pid_s->SetMode(AUTOMATIC);
+    pid_s->SetOutputLimits(-500, 500);
 
     // Set sample rate of the PID loop to 100 times per second (Default 10)
     pid_p->SetSampleTime(10);
-    // pid_s->SetSampleTime(10);
+    pid_s->SetSampleTime(10);
 }
 
 

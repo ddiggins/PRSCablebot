@@ -21,6 +21,7 @@
 // Uncomment to use software serial
 // SoftwareSerial client(2, 3); // RX, TX
 
+
 void setup(){
     // Initialize serial at baud 115200
     Serial.begin(115200);
@@ -36,22 +37,23 @@ void loop(){
 
     // Create list of sensors and structure to hold them
     typedef struct Objects{
-        const static int number = 2; // Number of sensors
+        const static int number = 6; // Number of sensors
         GenericObject* items[number];
     } Objects;
 
 
+
     // Define objects
-    // Sensor sensor("Sensor1");
+    Sensor sensor("Sensor1");
     // Motor motor("Motor1");
     // TempSensor tempsensor("tempsensor");
     // LeakSensor foreleak("foreleak", 13);
     // LeakSensor aftleak("aftleak", 12);
     // MotorEncoder encoder("encoder");
 
-    // TempSensor tempsensor("tempsensor");
-    // LeakSensor foreleak("foreleak", 13);
-    // LeakSensor aftleak("aftleak", 12);
+    TempSensor tempsensor("tempsensor");
+    LeakSensor foreleak("foreleak", 13);
+    LeakSensor aftleak("aftleak", 12);
     MotorEncoder encoder("encoder");
     Motor motor("Motor1", &encoder);
 
@@ -59,12 +61,12 @@ void loop(){
 
     // Add objects to structure
     Objects objects;
-    // objects.items[0] = &sensor;
-    objects.items[0] = &motor;
-    // objects.items[2] = &tempsensor;
-    // objects.items[3] = &foreleak;
-    // objects.items[4] = &aftleak;
-    objects.items[1] = &encoder;
+    objects.items[0] = &sensor;
+    objects.items[1] = &motor;
+    objects.items[2] = &tempsensor;
+    objects.items[3] = &foreleak;
+    objects.items[4] = &aftleak;
+    objects.items[5] = &encoder;
 
     while(1){
 
