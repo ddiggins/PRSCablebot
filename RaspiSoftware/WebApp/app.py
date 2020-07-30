@@ -113,9 +113,10 @@ if __name__ == '__main__':
     COMMUNICATOR.start()
 
     # Starts background task that continually checks for incoming messages.
-    NEW_LOGGER = logger.Logger(INCOMING_COMMANDS, OUTGOING_COMMANDS, LOCK, SOCKETIO,\
+    NEW_LOGGER = logger.Logger(INCOMING_COMMANDS, OUTGOING_COMMANDS, LOCK,\
             "mainLog.txt", CONNECTOR_QUEUES)
-    SOCKETIO.start_background_task(NEW_LOGGER.run_logger)
+    DATA_LOGGER = Process(target=NEW_LOGGER.run_logger)
+    DATA_LOGGER.start()
 
     # Starts camera
     CAMERA_PROCESS = Process(target=camera.start_camera, args=((2592, 1944), 10, "Images", RECORD_QUEUE_GLOBAL))

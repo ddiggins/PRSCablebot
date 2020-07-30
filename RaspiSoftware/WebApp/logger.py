@@ -8,13 +8,13 @@ import time
 class Logger:
     """ Reads commands from serial, logs them, and reports them to the website """
 
-    def __init__(self, incoming_commands, outgoing_commands, lock, socketio, log_file,\
+    def __init__(self, incoming_commands, outgoing_commands, lock, log_file,\
         connector_queues):
         """ Creates a logger and initializes a log with the given filename """
         self.incoming_commands = incoming_commands
         self.outgoing_commands = outgoing_commands
         self.lock = lock
-        self.socketio = socketio # the socketio object
+        self.socketio = SocketIO(message_queue='redis://') # the socketio object
         self.connector_queues = connector_queues
 
         # Define data structure
