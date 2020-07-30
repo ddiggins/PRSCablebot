@@ -56,6 +56,10 @@ class SQLConnector:
         self.cursor.execute("CREATE TABLE IF NOT EXISTS " + str(self.table_name) \
             + " (id INT AUTO_INCREMENT PRIMARY KEY, timestamp TIMESTAMP(3),\
                  name VARCHAR(255), value VARCHAR(255))")
+        
+        # Create dummy placeholder line.
+        
+        self.add_data('2000-01-01 00:00:01.000', "dummyName", "dummyValue")
 
 
     def add_data(self, timestamp, name, value):
@@ -140,39 +144,29 @@ class SQLConnector:
         return res[:num_records+1]
 
 
-    def run_database_connector(self, request_queue, record_queue, answer_queue):
+    def run_database(self, record_queue):
         """ Check for incoming requests and process them """
         print ("running database")
+        old_record = self.query_sensor('*', 1, 'timestamp')
         while 1:
-            if not request_queue.empty():
-                request = request_queue.get()
-                assert len(request) == 3 or len(request) == 4, "INVALID REQUEST: wrong number of arguments"
-                if len(request) == 3:
-                    answer_queue.put(self.query_sensor(request[0], request[1], request[2]))
-                if len(request) == 4:
-                    answer_queue.put(self.query_sensor(request[0], request[1], request[2], request[3]))
 
+            # write into database
             self.lock.acquire()
             if not record_queue.empty():
                 print("INSERTING RECORD")
                 data = record_queue.get()
                 self.add_data(data[0], data[1], data[2])
             self.lock.release()
-            time.sleep(.01)
+            time.sleep(0.01)
 
-    def get_latest_record(self, request_queue, answer_queue, lock):
-        '''
-        Will run as a background process constantly checking the database to see whether
-        the records have been updated. If new record appears, it broadcases it as a json message.
-        The json message is picked up by visualization.js and processed.
-        '''
-        old_record = request_record(('*', 1, 'timestamp'), request_queue, answer_queue, lock)
         
-        while 1:
-            # Checks database for updates every second
-            # time.sleep(1)
-        
-            new_record = request_record(('*', 1, 'timestamp'), request_queue, answer_queue, lock)
+    def run_database_2(self, record_queue):
+        # reading database for frontend table display
+        old_record = self.query_sensor('*', 1, 'timestamp')
+
+        while True:
+            time.sleep(0.01)
+            new_record = self.query_sensor('*', 1, 'timestamp')
             # print ("NEW RECORD: ", new_record)
             # print ("OLD RECORD: ", old_record)
             
@@ -191,29 +185,7 @@ class SQLConnector:
                 # self.socketio.emit("update table", new_record)
                 self.socketio.emit("update table", new_record, broadcast = True)
                 print("emited update table")
-
-
     
-def request_record(record, request_queue, answer_queue, lock):
-    """ Requests one or more records from the database 
-    record: (name of variable, number of records wanted, variable to sort by, tablename)
-    """
-    
-    request_queue.put(record)
-    # while answer_queue.empty(): time.sleep(.01) # yield
-    while 1:
-        lock.acquire()
-        if answer_queue.empty():
-            lock.release()
-            break
-        lock.release()
-        time.sleep(.01)
-
-    val = answer_queue.get()
-    # Returns a tuple
-    return val
-
-
 def add_record(record, record_queue, lock):
     """ Requests one or more records from the database """
     lock.acquire()

@@ -85,44 +85,43 @@ def index():
 
 if __name__ == '__main__':
 
-    # Queues for serial commands
-    OUTGOING_COMMANDS = Queue()
-    INCOMING_COMMANDS = Queue()
+    # # Queues for serial commands
+    # OUTGOING_COMMANDS = Queue()
+    # INCOMING_COMMANDS = Queue()
 
-    # Queues for sql database connector
-    LOCK_GLOBAL = Lock()
-    CONNECTOR = sqlConnector.SQLConnector("sensorLogs", "default", False, LOCK_GLOBAL)
-    REQUEST_QUEUE_GLOBAL = Queue()
-    RECORD_QUEUE_GLOBAL = Queue()
-    ANSWER_QUEUE_GLOBAL = Queue()
-    CONNECTOR_QUEUES = [REQUEST_QUEUE_GLOBAL, RECORD_QUEUE_GLOBAL, ANSWER_QUEUE_GLOBAL, LOCK_GLOBAL]
+    # # Queues for sql database connector
+    # LOCK_GLOBAL = Lock()
+    # CONNECTOR = sqlConnector.SQLConnector("sensorLogs", "default", False, LOCK_GLOBAL)
+    RECORD_QUEUE = Queue()
+    
+    # Starts sql database connector that handles writing and reading(broadcasts to socket)
+    # DATABASE_CONNECTOR = Process(target=CONNECTOR.run_database,\
+    #     args=(RECORD_QUEUE,))
+    # DATABASE_CONNECTOR.start()
 
-    DATABASE_CONNECTOR = Process(target=CONNECTOR.run_database_connector,\
-        args=(REQUEST_QUEUE_GLOBAL, RECORD_QUEUE_GLOBAL, ANSWER_QUEUE_GLOBAL))
-    DATABASE_CONNECTOR.start()
+    # # TESTING
+    # DATABASE_CONNECTOR_2 = Process(target=CONNECTOR.run_database_2,\
+    #     args=(RECORD_QUEUE,))
+    # DATABASE_CONNECTOR_2.start()
 
-    # Starts thread that checks database for incoming messages
-    DATABASE_SCANNER = Process(target=CONNECTOR.get_latest_record, \
-        args=(REQUEST_QUEUE_GLOBAL, ANSWER_QUEUE_GLOBAL, LOCK_GLOBAL))
-    DATABASE_SCANNER.start()
-    # SOCKETIO.start_background_task(CONNECTOR.get_latest_record, REQUEST_QUEUE_GLOBAL, ANSWER_QUEUE_GLOBAL, LOCK_GLOBAL)
 
     # Starts thread that runs serial communication.
-    COMMUNICATOR = Process(target=SerialCommunication.run_communication,\
-            args=(OUTGOING_COMMANDS, INCOMING_COMMANDS, LOCK))
-    COMMUNICATOR.start()
+    # COMMUNICATOR = Process(target=SerialCommunication.run_communication,\
+    #         args=(OUTGOING_COMMANDS, INCOMING_COMMANDS, LOCK))
+    # COMMUNICATOR.start()
 
     # Starts background task that continually checks for incoming messages.
-    NEW_LOGGER = logger.Logger(INCOMING_COMMANDS, OUTGOING_COMMANDS, LOCK,\
-            "mainLog.txt", CONNECTOR_QUEUES)
-    DATA_LOGGER = Process(target=NEW_LOGGER.run_logger)
-    DATA_LOGGER.start()
+    # NEW_LOGGER = logger.Logger(INCOMING_COMMANDS, OUTGOING_COMMANDS, LOCK,\
+    #         "mainLog.txt", CONNECTOR_QUEUES)
+    # DATA_LOGGER = Process(target=NEW_LOGGER.run_logger)
+    # DATA_LOGGER.start()
 
     # Starts camera
-    CAMERA_PROCESS = Process(target=camera.start_camera, args=((2592, 1944), 10, "Images", RECORD_QUEUE_GLOBAL))
+
+    CAMERA_PROCESS = Process(target=camera.start_camera, args=((2592, 1944), 1, "Images", RECORD_QUEUE))
     CAMERA_PROCESS.start()
 
 
     # Runs app wrapped in Socket.io. "debug" and "use_reloader" need to be false
     # or else Flask creates a child process and re-runs main.
-    SOCKETIO.run(APP, debug=False, host='0.0.0.0', use_reloader=False)
+    # SOCKETIO.run(APP, debug=False, host='0.0.0.0', use_reloader=False)
