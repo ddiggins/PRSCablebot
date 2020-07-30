@@ -28,7 +28,7 @@ SECRET_KEY = os.urandom(32)
 APP.config['SECRET_KEY'] = SECRET_KEY
 
 # Initialize Socket.io
-SOCKETIO = SocketIO(APP)
+SOCKETIO = SocketIO(APP, message_queue='redis://')
 
 # Lists to display incoming and outgoing commands
 INCOMING = []
@@ -91,7 +91,7 @@ if __name__ == '__main__':
 
     # Queues for sql database connector
     LOCK_GLOBAL = Lock()
-    CONNECTOR = sqlConnector.SQLConnector("sensorLogs", "default", False, LOCK_GLOBAL, SOCKETIO)
+    CONNECTOR = sqlConnector.SQLConnector("sensorLogs", "default", False, LOCK_GLOBAL)
     REQUEST_QUEUE_GLOBAL = Queue()
     RECORD_QUEUE_GLOBAL = Queue()
     ANSWER_QUEUE_GLOBAL = Queue()
@@ -102,10 +102,10 @@ if __name__ == '__main__':
     DATABASE_CONNECTOR.start()
 
     # Starts thread that checks database for incoming messages
-    # DATABASE_SCANNER = Process(target=CONNECTOR.get_latest_record, \
-    #     args=(REQUEST_QUEUE_GLOBAL, ANSWER_QUEUE_GLOBAL, LOCK_GLOBAL))
-    # DATABASE_SCANNER.start()
-    SOCKETIO.start_background_task(CONNECTOR.get_latest_record, REQUEST_QUEUE_GLOBAL, ANSWER_QUEUE_GLOBAL, LOCK_GLOBAL)
+    DATABASE_SCANNER = Process(target=CONNECTOR.get_latest_record, \
+        args=(REQUEST_QUEUE_GLOBAL, ANSWER_QUEUE_GLOBAL, LOCK_GLOBAL))
+    DATABASE_SCANNER.start()
+    # SOCKETIO.start_background_task(CONNECTOR.get_latest_record, REQUEST_QUEUE_GLOBAL, ANSWER_QUEUE_GLOBAL, LOCK_GLOBAL)
 
     # Starts thread that runs serial communication.
     COMMUNICATOR = Process(target=SerialCommunication.run_communication,\

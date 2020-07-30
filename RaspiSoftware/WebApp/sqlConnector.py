@@ -10,13 +10,13 @@ class SQLConnector:
     """ A wrapper for mySQL to handle data dumps and requests """
 
     # def __init__(self, database_name, table_name, delete_existing, lock):
-    def __init__(self, database_name, table_name, delete_existing, lock, socketio):
+    def __init__(self, database_name, table_name, delete_existing, lock):
 
         """ Set up database if not alrerady configured and assign structure """
 
         self.lock = lock
-
-        self.socketio = socketio # the socketio object
+        
+        self.socketio = SocketIO(message_queue='redis://')  # the socketio object
 
         # Connect to server and create cursor
         self.database = mysql.connector.connect(
@@ -192,8 +192,7 @@ class SQLConnector:
                 self.socketio.emit("update table", new_record, broadcast = True)
                 print("emited update table")
 
-def ack():
-    print('message was recieved')
+
     
 def request_record(record, request_queue, answer_queue, lock):
     """ Requests one or more records from the database 
