@@ -3,9 +3,11 @@
 
 // Includes
 #include <ArduinoJson.h>
-#include <Encoder.h>
+//#include </home/colin/Downloads/arduino-1.8.9/hardware/teensy/avr/libraries/Encoder/Encoder.h>
+//#include <Encoder.h>
 #include "object.h"
 #include "encoder.h"
+#include "QuadEncoder.h"
 
 
 int MotorEncoder::update(JsonDocument* params) {  // Same as doc
@@ -51,6 +53,9 @@ MotorEncoder::MotorEncoder(String name) {
     attributes.attrs[1] = &enabled;
     attributes.attrs[2] = &update_rate;
     attributes.number = 3;
+      encoder->setInitConfig();
+     encoder->EncConfig.INDEXTriggerMode = RISING_EDGE;
+     encoder->init();
 }
 
 

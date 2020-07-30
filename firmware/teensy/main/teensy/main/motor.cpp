@@ -3,7 +3,8 @@
 
 // Includes
 #include <ArduinoJson.h>
-#include <Servo.h>
+//#include </home/colin/Downloads/arduino-1.8.9/hardware/teensy/avr/libraries/Servo/Servo.h>
+#include<Servo.h>
 // #include <Encoder.h>
 #include <PID_v1.h>
 #include "object.h"
@@ -46,15 +47,17 @@ int Motor::run() {
             if (mode.value.toInt() == 1){
                 // Encoder control
 
-                if (!motor.attached()) {
-                    motor.attach(motorPWM);
-                }
+//                if (!motor.attached()) {
+//                    motor.attach(motorPWM);
+//                }
 
-                Input_p = target.value.toDouble() - encoder->encoder->read(); // Calculate error
+                Input_p = target.value.toFloat() - encoder->encoder->read(); // Calculate error
+//                Input_p = 0.0;
                 pid_p->Compute();
-                // Serial.print(Input_p);
-                // Serial.print(", ");
-                // Serial.println(Output_p);
+//                 Serial.print(encoder->encoder->read());
+//                 Serial.print(", ");
+//                 Serial.println(Output_p);
+//                Serial.println(encoder->encoder->read());
                 pwm = Output_p + 1500;
                 // Serial.println(Output_p);
                 motor.writeMicroseconds(pwm);
@@ -67,14 +70,19 @@ int Motor::run() {
                 new_time_s = millis();
                 speed_s = (new_position_s - last_position_s) / ((double) new_time_s - (double) last_time_s);
 
-                if (!motor.attached()) {
-                    motor.attach(motorPWM);
-                }
+//                if (!motor.attached()) {
+//                    motor.attach(motorPWM);
+//                }
 
-                Input_s = target.value.toDouble() - speed_s; // Calculate error
+                Input_s = target.value.toFloat() - speed_s; // Calculate error
                 pid_s->Compute();
                 pwm = Output_s + 1500;
                 motor.writeMicroseconds(pwm);
+//                 Serial.print(Input_s);
+////                 Serial.print(", ");
+////                 Serial.print(target.value.toFloat());
+//                 Serial.print(", ");
+//                 Serial.println(Output_s);
 
                 last_position_s = encoder->encoder->read();
                 last_time_s = millis();
@@ -83,19 +91,20 @@ int Motor::run() {
             else{
 
                 // Update Motor speed
-                int timeOn = int(speed.value.toDouble()*500.0+1500.0);
-                if (!motor.attached()) {
-                    motor.attach(motorPWM);
-                }
+                int timeOn = int(speed.value.toFloat()*500.0+1500.0);
+//                if (!motor.attached()) {
+//                    motor.attach(motorPWM);
+//                }
                 motor.writeMicroseconds(timeOn);
 
             }
 
 
         } else {
-            if (motor.attached()) {
-                motor.detach();
-            }
+//            if (motor.attached()) {
+//                motor.detach();
+//            }
+              motor.writeMicroseconds(1500);
         }
     }
 
@@ -112,6 +121,7 @@ int Motor::run() {
         Serial.print(speed.value);
         Serial.println(F("}"));
     }
+    return 0;
 }
 
 
@@ -136,6 +146,7 @@ Motor::Motor(String name, MotorEncoder* encoder_in) {
     // Set sample rate of the PID loop to 100 times per second (Default 10)
     pid_p->SetSampleTime(10);
     pid_s->SetSampleTime(10);
+    motor.attach(motorPWM);
 }
 
 
