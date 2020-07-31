@@ -1,9 +1,9 @@
 """ Basic web app using Flask
     Runs on the local ip of the pi and is accessible on the network """
 from gevent import monkey
-monkey.patch_all()
+monkey.patch_all(thread=False)
 import os
-from multiprocessing import Queue, Process
+from multiprocessing import Queue, Process, Pipe
 from threading import Lock
 from flask import Flask, render_template, url_for, redirect
 from flask_socketio import SocketIO, emit, send
@@ -11,9 +11,9 @@ from forms import SerialSendForm
 import SerialCommunication
 import json
 import logging
-import logger
 import sqlConnector
-import camera
+import camera as Camera
+from Modbus import Modbus
 
 # Initializes flask app
 
@@ -41,21 +41,21 @@ LOCK = Lock()
 def enable_motor():
     """ Enables motor by sending json value """
     start_motor = '{"id" : "Motor1", "enabled" : "1"}'
-    OUTGOING_COMMANDS.put(start_motor)
+    SERIAL_PARENT.send(start_motor)
     OUTGOING.append(start_motor)
 
 @SOCKETIO.on('disable motor')
 def disable_motor():
     """Disables motor"""
     stop_motor = '{"id" : "Motor1", "enabled" : "0"}'
-    OUTGOING_COMMANDS.put(stop_motor)
+    SERIAL_PARENT.send(stop_motor)
     OUTGOING.append(stop_motor)
 
 @SOCKETIO.on('new motor speed')
 def update_motor_speed(data):
     """Changes the motor speed to value dictated by the slider."""
     slider_speed = json.dumps({"id" : "Motor1", "speed": data})
-    OUTGOING_COMMANDS.put(slider_speed)
+    SERIAL_PARENT.send(slider_speed)
     OUTGOING.append(slider_speed)
 
 @SOCKETIO.on('update table')
@@ -72,7 +72,7 @@ def index():
     if form.validate_on_submit():
         # Send value to outgoing queue
         json_message = form.json.data
-        OUTGOING_COMMANDS.put(json_message)
+        SERIAL_PARENT.send(json_message)
         OUTGOING.append(json_message)
 
     template_data = {
@@ -82,46 +82,30 @@ def index():
 
     return render_template('serialMonitor.jinja2', **template_data, form=form)
 
-
 if __name__ == '__main__':
 
-    # # Queues for serial commands
-    # OUTGOING_COMMANDS = Queue()
-    # INCOMING_COMMANDS = Queue()
-
+    # # Pipes to Webapp
+    SERIAL_CHILD, SERIAL_PARENT = Pipe()
+    
     # # Queues for sql database connector
-    # LOCK_GLOBAL = Lock()
-    # CONNECTOR = sqlConnector.SQLConnector("sensorLogs", "default", False, LOCK_GLOBAL)
     RECORD_QUEUE = Queue()
     
+    
+    # Starts camera
+    CAMERA_PROCESS = Process(target=Camera.start_camera, args=((2592, 1944), 10, "Images", RECORD_QUEUE))
+    CAMERA_PROCESS.start()
+
     # Starts sql database connector that handles writing and reading(broadcasts to socket)
-    # DATABASE_CONNECTOR = Process(target=CONNECTOR.run_database,\
-    #     args=(RECORD_QUEUE,))
-    # DATABASE_CONNECTOR.start()
-
-    # # TESTING
-    # DATABASE_CONNECTOR_2 = Process(target=CONNECTOR.run_database_2,\
-    #     args=(RECORD_QUEUE,))
-    # DATABASE_CONNECTOR_2.start()
-
+    DATABASE_CONNECTOR = Process(target=sqlConnector.start_sqlConnector,\
+        args=(RECORD_QUEUE,))
+    DATABASE_CONNECTOR.start()
 
     # Starts thread that runs serial communication.
-    # COMMUNICATOR = Process(target=SerialCommunication.run_communication,\
-    #         args=(OUTGOING_COMMANDS, INCOMING_COMMANDS, LOCK))
-    # COMMUNICATOR.start()
-
-    # Starts background task that continually checks for incoming messages.
-    # NEW_LOGGER = logger.Logger(INCOMING_COMMANDS, OUTGOING_COMMANDS, LOCK,\
-    #         "mainLog.txt", CONNECTOR_QUEUES)
-    # DATA_LOGGER = Process(target=NEW_LOGGER.run_logger)
-    # DATA_LOGGER.start()
-
-    # Starts camera
-
-    CAMERA_PROCESS = Process(target=camera.start_camera, args=((2592, 1944), 1, "Images", RECORD_QUEUE))
-    CAMERA_PROCESS.start()
+    COMMUNICATOR = Process(target=SerialCommunication.start_serial_communication,\
+            args=(RECORD_QUEUE, SERIAL_CHILD))
+    COMMUNICATOR.start()
 
 
     # Runs app wrapped in Socket.io. "debug" and "use_reloader" need to be false
     # or else Flask creates a child process and re-runs main.
-    # SOCKETIO.run(APP, debug=False, host='0.0.0.0', use_reloader=False)
+    SOCKETIO.run(APP, debug=False, host='0.0.0.0', use_reloader=False) 

@@ -5,69 +5,99 @@ import sys
 import time
 from multiprocessing import Queue
 import serial
+import json
 # TODO: Remove if uncessary: from flask_socketio import SocketIO, join_room, emit, send
 from threading import Lock
+from datetime import datetime
 
+class SerialCommunication:
 
-def start_serial():
-    """ Checks for serial devices on ACM ports and connects to the
-        first available device. Opens a serial line and returns a reference to it """
-    for i in range(9):
-        ser = None
+    def __init__(self, record_queue, pipe):
+        """ Checks for serial devices on ACM ports and connects to the
+            first available device. Opens a serial line and returns a reference to it """
+        self.pipe = pipe
+        self.record_queue = record_queue
+
+        
+        for i in range(9):
+            self.ser = None
+            try:
+                self.ser = serial.Serial('/dev/ttyACM' + str(i), timeout=.5)
+                break
+            except:  # All exceptions are checked against assert below
+                print('/dev/ttyACM' + str(i) + " failed. Trying next port")
+        assert self.ser is not None, "Failed to connect to host (No ports open)"
+        self.ser.baudrate = 115200
+        self.ser.close()
+        self.ser.open()
+        time.sleep(2)
+
+    def send_command(self, command):
+        """ Sends a command string over serial """
+        self.ser.write((command + "\r\n").encode())
+        print("writing Command")
+        print("Command written: " + (command + "\r\n"))
+        return 1
+
+    def receive_command(self):
+        """ Reads one line from serial """
         try:
-            ser = serial.Serial('/dev/ttyACM' + str(i), timeout=.5)
-            break
-        except:  # All exceptions are checked against assert below
-            print('/dev/ttyACM' + str(i) + " failed. Trying next port")
-    assert ser is not None, "Failed to connect to host (No ports open)"
-    ser.baudrate = 115200
-    ser.close()
-    ser.open()
-    time.sleep(2)
-    return ser
+            output = self.ser.readline().decode()
+            return output
+        except serial.SerialException:
+            print("read failed")
+            return ""
 
-def send_command(ser, command):
-    """ Sends a command string over serial """
-    ser.write((command + "\r\n").encode())
-    print("writing Command")
-    print("Command written: " + (command + "\r\n"))
-    return 1
+    def interpret_json(self, line):
+        """Interprets json and parses it into attributes"""
+        # Creates dict named data with json info. Throws ValueError if
+        # invalid Json input.
+        print("line in interpret_json: ", line)
+        data = json.loads(line)
 
-def receive_command(ser):
-    """ Reads one line from serial """
-    try:
-        output = ser.readline().decode()
-        return output
-    except serial.SerialException:
-        print("read failed")
-        return ""
+        assert 'id' in data.keys(), "Input string missing key 'id' "
+        assert data['id'] != "", "Input id is empty"
 
-def run_communication(input_commands, output_commands, lock):
-    """ Runs a loop which reads and writes serial commands.
-        Uses two queues to communicate with other processes """
+        return data
 
-    ser = start_serial()
+    def write_to_database(self, line):
+        """Write records to database"""
+        data = self.interpret_json(line) #Sets updated self.data_dict
+        print("data:", data)
+        current_time = datetime.now().isoformat()
+        timestamp = str(current_time)
+        print("Timestamp:" + timestamp)
+        print("Data:" + str(json.dumps(data)))
 
-    while 1:
+        assert 'id' in data.keys(), "Input string missing key 'id' "
+        assert data['id'] != "", "Input id is empty"
+        
+        if len(list(data.values())) == 3: # If the record has data associated
+            self.record_queue.put((datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3],\
+                str(data["id"]), str(list(data.values())[2]))) # Add data to database
+        print("writing to the database")
 
-        lock.acquire()
+    def run_communication(self):
+        """ Runs a loop which reads and writes serial commands.
+            Uses two queues to communicate with other processes """
 
-        if not input_commands.empty():
-            command = input_commands.get_nowait()
+        while 1:
+            # Sends command from the webapp to the serial line via pipe.
+            if self.pipe.poll() is True:
+                self.send_command(self.pipe.recv())
 
-        else:
-            command = None
-        if command is not None:
-            send_command(ser, command)
+            # Receives incoming messages from from serial line and writes them to the database
+            response = self.receive_command()
 
-        response = receive_command(ser)
+            if response != "":
+                print("Response is:" + str(response))
+                print("About to write serial messages into the database. ")
+                self.write_to_database(response)
+            time.sleep(.005)
 
-        if response != "":
-            print("Response is:" + str(response))
-            output_commands.put(response)
-        lock.release()
-
-        time.sleep(.005)
+def start_serial_communication(record_queue, pipe):
+    ser = SerialCommunication(record_queue, pipe)
+    ser.run_communication()
 
 
 if __name__ == "__main__":
