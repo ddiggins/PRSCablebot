@@ -28,8 +28,9 @@ class SerialCommunication:
                 print('/dev/ttyACM' + str(i) + " failed. Trying next port")
         assert self.ser is not None, "Failed to connect to host (No ports open)"
         self.ser.baudrate = 115200
-        self.ser.close()
-        self.ser.open()
+        # self.ser.close()
+        if not self.ser.isOpen():
+            self.ser.open()
         time.sleep(2)
 
     def send_command(self, command):
