@@ -8,11 +8,39 @@
     <h1>Motor Control</h1>
     <input onclick="toggle_motor()" type="button" value="Enable Motor" id="motorStatus"></input>
 
-    <!-- Create slider -->
-    <div class="slidecontainer">
-        <input type="range" min="-1" max="1" value="0" step="0.1" class="slider" id="motorSpeed" oninput="updateSlider()" onchange="send_motor_speed()">
-        <p>Value: <span id="display" onload="updateSlider()"></span></p>
+    <input onclick="toggle_power()" type="button" value="Power Disabled" id="powerStatus"></input>
+    <input onclick="toggle_speed()" type="button" value="Speed Disabled" id="speedStatus"></input>
+    <input onclick="toggle_position()" type="button" value="Position Enabled" id="positionStatus"></input>
+
+    <!-- Create power slider -->
+    <div >
+        <p>Power Value: <span id="displayPower" onload="update_power_slider()"></span></p>
+        <input type="range" min="-1" max="1" value="0" step="0.1" class="slider" id="motorPower" oninput="update_power_slider()" onchange="send_motor_power()">
     </div>
+
+    <!-- Create encoder position text box
+    <div class="encoder_pos_containter">
+        <input type="text" id="fname" name="fname"><br><br>
+    </div>
+        <label for="fname">Position value:</label>
+        <input type="submit" value="Submit"> -->
+    <!-- Create encoder speed slider -->
+    
+
+    <div class="encoder_slider_container">
+        <p>Encoder Speed: <span id="displaySpeed" onload="update_speed_slider()"></span></p>
+        <input type="range" min="-3" max="3" value="0" step="0.1" class="slider" id="encoderSpeed" oninput="update_speed_slider()" onchange="send_encoder_speed()">
+    </div>
+
+    <div >
+        <p>Position Location</p>
+        <form method="POST" action="/">
+            {{ form_target.csrf_token }}
+            <div>{{ form_target.json.label }} {{ form_target.json(size=20) }}</div>
+            {{ form_target.submit }}
+        </form>
+    </div>
+    
 </div>
 
 <!-- Refresh page button -->
@@ -24,9 +52,9 @@
 <div>
     <h2>Serial Send</h2>
     <form method="POST" action="/">
-        {{ form.csrf_token }}
-        <div>{{ form.json.label }} {{ form.json(size=20) }}</div>
-        {{ form.submit }}
+        {{ form_long.csrf_token }}
+        <div>{{ form_long.json.label }} {{ form_long.json(size=20) }}</div>
+        {{ form_long.submit }}
     </form>
 </div>
 

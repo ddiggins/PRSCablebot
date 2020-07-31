@@ -51,12 +51,26 @@ def disable_motor():
     SERIAL_PARENT.send(stop_motor)
     OUTGOING.append(stop_motor)
 
-@SOCKETIO.on('new motor speed')
+@SOCKETIO.on('new motor power')
 def update_motor_speed(data):
     """Changes the motor speed to value dictated by the slider."""
-    slider_speed = json.dumps({"id" : "Motor1", "speed": data})
-    SERIAL_PARENT.send(slider_speed)
-    OUTGOING.append(slider_speed)
+    slider_power = json.dumps({"id" : "Motor1", "speed": data})
+    SERIAL_PARENT.send(slider_power)
+    OUTGOING.append(slider_power)
+
+@SOCKETIO.on('new motor target')
+def update_motor_target(data):
+    """Changes the motor target to value dictated by the slider."""
+    slider_target = json.dumps({"id" : "Motor1", "target": data})
+    SERIAL_PARENT.send(slider_target)
+    OUTGOING.append(slider_target)
+
+@SOCKETIO.on('new motor mode')
+def update_motor_mode(data):
+    """Changes the motor speed to value dictated by the slider."""
+    mode = json.dumps({"id" : "Motor1", "mode": data})
+    SERIAL_PARENT.send(mode)
+    OUTGOING.append(mode)
 
 @SOCKETIO.on('update table')
 def validatesensing():
@@ -65,22 +79,31 @@ def validatesensing():
 @APP.route('/', methods=('GET', 'POST'))
 def index():
     """ Creates webpage. Runs every time the page is refreshed """
-    form = SerialSendForm()
+    form_long = SerialSendForm()
+    form_target = SerialSendForm()
     print("web page loading")
 
     # Submit motor command through form
-    if form.validate_on_submit():
+    if form_long.validate_on_submit():
         # Send value to outgoing queue
-        json_message = form.json.data
+        json_message = form_long.json.data
         SERIAL_PARENT.send(json_message)
         OUTGOING.append(json_message)
 
+    # Submit motor command through form
+    if form_target.validate_on_submit():
+        # Send value to outgoing queue
+        json_message = form_target.json.data
+        str_message = json.dumps({"id" : "Motor1", "target": json_message})
+        SERIAL_PARENT.send(str_message)
+        OUTGOING.append(str_message)
+    
     template_data = {
         'incoming':INCOMING,
         'outgoing':OUTGOING
     }
 
-    return render_template('serialMonitor.jinja2', **template_data, form=form)
+    return render_template('serialMonitor.jinja2', **template_data, form_long=form_long, form_target=form_target)
 
 if __name__ == '__main__':
 

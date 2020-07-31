@@ -54,7 +54,11 @@ class SerialCommunication:
         # Creates dict named data with json info. Throws ValueError if
         # invalid Json input.
         print("line in interpret_json: ", line)
-        data = json.loads(line)
+        try:
+            data = json.loads(line)
+        except json.decoder.JSONDecodeError:
+            print("Failed to read a json line")
+            return None
 
         assert 'id' in data.keys(), "Input string missing key 'id' "
         assert data['id'] != "", "Input id is empty"
@@ -64,6 +68,7 @@ class SerialCommunication:
     def write_to_database(self, line):
         """Write records to database"""
         data = self.interpret_json(line) #Sets updated self.data_dict
+        if data is None: return
         print("data:", data)
         current_time = datetime.now().isoformat()
         timestamp = str(current_time)
