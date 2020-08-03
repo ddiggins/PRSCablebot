@@ -36,8 +36,7 @@ class SerialCommunication:
     def send_command(self, command):
         """ Sends a command string over serial """
         self.ser.write((command + "\r\n").encode())
-        print("writing Command")
-        print("Command written: " + (command + "\r\n"))
+        # print("Writing command: " + (command + "\r\n"))
         return 1
 
     def receive_command(self):
@@ -53,7 +52,6 @@ class SerialCommunication:
         """Interprets json and parses it into attributes"""
         # Creates dict named data with json info. Throws ValueError if
         # invalid Json input.
-        print("line in interpret_json: ", line)
         try:
             data = json.loads(line)
         except json.decoder.JSONDecodeError:
@@ -72,8 +70,8 @@ class SerialCommunication:
         # print("data:", data)
         current_time = datetime.now().isoformat()
         timestamp = str(current_time)
-        print("Timestamp:" + timestamp)
-        print("Data:" + str(json.dumps(data)))
+        # print("Timestamp:" + timestamp)
+        # print("Data:" + str(json.dumps(data)))
 
         assert 'id' in data.keys(), "Input string missing key 'id' "
         assert data['id'] != "", "Input id is empty"
@@ -81,7 +79,7 @@ class SerialCommunication:
         if len(list(data.values())) == 3: # If the record has data associated
             self.record_queue.put((datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3],\
                 str(data["id"]), str(list(data.values())[2]))) # Add data to database
-        print("writing to the database")
+        # print("writing to the database")
 
     def run_communication(self):
         """ Runs a loop which reads and writes serial commands.
@@ -96,8 +94,7 @@ class SerialCommunication:
             response = self.receive_command()
 
             if response != "":
-                print("Response is:" + str(response))
-                print("About to write serial messages into the database. ")
+                # print("Response is:" + str(response))
                 self.write_to_database(response)
             time.sleep(.005)
 

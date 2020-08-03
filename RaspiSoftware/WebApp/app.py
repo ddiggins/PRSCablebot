@@ -5,7 +5,7 @@ monkey.patch_all(thread=False)
 import os
 from multiprocessing import Queue, Process, Pipe
 from threading import Lock
-from flask import Flask, render_template, url_for, redirect
+from flask import Flask, render_template, url_for, redirect, flash, request
 from flask_socketio import SocketIO, emit, send
 from forms import SerialSendForm
 import SerialCommunication
@@ -13,7 +13,10 @@ import json
 import logging
 import sqlConnector
 import camera as Camera
+import urllib.request
+from werkzeug.utils import secure_filename
 from Modbus import Modbus
+from deployment import Deployment
 
 # Initializes flask app
 
@@ -36,6 +39,11 @@ OUTGOING = []
 
 # A mutex to protect the incoming queue
 LOCK = Lock()
+
+ALLOWED_EXTENSIONS = set(['txt'])
+
+def allowed_file(filename):
+	return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @SOCKETIO.on('enable motor')
 def enable_motor():
@@ -72,9 +80,13 @@ def update_motor_mode(data):
     SERIAL_PARENT.send(mode)
     OUTGOING.append(mode)
 
-@SOCKETIO.on('update table')
-def validatesensing():
-    print("recieved message from sqlConnector.py")
+@SOCKETIO.on('run deployment')
+def run_deployment(file):
+    """ Runs a deployment for a given file """
+    print("running deployment")
+    deployment = Deployment(SERIAL_PARENT, file)
+    deployment_process = Process(target=deployment.run)
+    deployment_process.start()
 
 @APP.route('/', methods=('GET', 'POST'))
 def index():
@@ -97,7 +109,28 @@ def index():
         str_message = json.dumps({"id" : "Motor1", "target": json_message})
         SERIAL_PARENT.send(str_message)
         OUTGOING.append(str_message)
-    
+    # Run deployment
+    if request.method == 'POST':
+        # check if the post request has the file part
+        if 'file' not in request.files:
+            print('No file part')
+            return redirect(request.url)
+        file = request.files['file']
+        if file.filename == '':
+            print('No file selected for uploading')
+            return redirect(request.url)
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file.save(os.path.join('uploads', filename))
+            print(filename)
+            SOCKETIO.emit('run deployment', filename, broadcast=False)
+            run_deployment('uploads/' + str(filename))
+            print('File successfully uploaded')
+            return redirect('/')
+        else:
+            print('Allowed file types are .txt')
+            return redirect(request.url)
+
     template_data = {
         'incoming':INCOMING,
         'outgoing':OUTGOING
@@ -113,7 +146,6 @@ if __name__ == '__main__':
     # # Queues for sql database connector
     RECORD_QUEUE = Queue()
     
-    
     # Starts camera
     CAMERA_PROCESS = Process(target=Camera.start_camera, args=((2592, 1944), 10, "Images", RECORD_QUEUE))
     CAMERA_PROCESS.start()
@@ -127,7 +159,6 @@ if __name__ == '__main__':
     COMMUNICATOR = Process(target=SerialCommunication.start_serial_communication,\
             args=(RECORD_QUEUE, SERIAL_CHILD))
     COMMUNICATOR.start()
-
 
     # Runs app wrapped in Socket.io. "debug" and "use_reloader" need to be false
     # or else Flask creates a child process and re-runs main.

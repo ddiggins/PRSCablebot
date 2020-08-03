@@ -40,7 +40,6 @@ class SQLConnector:
                 new_table_name = "run0"
             else:
                 new_table_name = "run" + str(int(tables[-1][3:]) + 1) # Create new name one greater than existing
-                print ("creating new table name")
             self.table_name = new_table_name
 
         else:
@@ -84,7 +83,7 @@ class SQLConnector:
         self.cursor.execute(sql, val)
 
         self.database.commit()
-        print(self.cursor.rowcount, "record inserted.")
+        # print(self.cursor.rowcount, "record inserted.")
         return self.cursor.rowcount
 
 
@@ -152,7 +151,7 @@ class SQLConnector:
 
             # Write into database
             if not record_queue.empty():
-                print("INSERTING RECORD")
+                # print("INSERTING RECORD")
                 data = record_queue.get()
                 self.add_data(data[0], data[1], data[2])
 
@@ -174,10 +173,9 @@ class SQLConnector:
                 # (name, value, timestamp)
                 new_record = (new_record[2], new_record[3], new_record[1])
                 new_record = json.dumps(new_record, default = myconverter) # Converts into Json
-                print("json new record: ", new_record)
-                # self.socketio.emit("update table", new_record)
+                # print("json new record: ", new_record)
                 self.socketio.emit("update table", new_record, broadcast = True)
-                print("emited update table")
+                # print("emited update table")
     
 def add_record(record, record_queue, lock):
     """ Add record to the database """
