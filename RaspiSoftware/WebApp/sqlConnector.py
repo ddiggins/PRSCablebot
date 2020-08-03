@@ -14,7 +14,6 @@ class SQLConnector:
 
         """ Set up database if not alrerady configured and assign structure """
 
-        
         self.socketio = SocketIO(message_queue='redis://')  # the socketio object
 
         # Connect to server and create cursor

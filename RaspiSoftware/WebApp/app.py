@@ -16,15 +16,15 @@ import camera as Camera
 import urllib.request
 from werkzeug.utils import secure_filename
 from Modbus import Modbus
-from deployment import Deployment
-
+# from deployment import Deployment
+import deployment
 # Initializes flask app
 
 APP = Flask(__name__)
 
 # Suppresses terminal outputs of GET and POST. Only allows error messages.
 LOG = logging.getLogger('werkzeug')
-LOG.setLevel(logging.ERROR)
+LOG.setLevel(logging.DEBUG)
 
 # Secret key to use for cookies (Definitely not secure but secure enough)
 SECRET_KEY = os.urandom(32)
@@ -84,9 +84,19 @@ def update_motor_mode(data):
 def run_deployment(file):
     """ Runs a deployment for a given file """
     print("running deployment")
-    deployment = Deployment(SERIAL_PARENT, file)
-    deployment_process = Process(target=deployment.run)
-    deployment_process.start()
+    DEPLOYER = Process(target=deployment.start_deployment,\
+        args=(SERIAL_PARENT,file))
+    DEPLOYER.start()
+
+    # deployment = Deployment(SERIAL_PARENT, file)
+    # deployment_process = Process(target=deployment.run)
+    # deployment_process.start()
+    # deployment_process.join()
+
+@SOCKETIO.on("testing deployment socket", namespace='/test')
+def test_deployment():
+    print("GOT SOCKET MESSAGE FROM DEPLOYMENT")
+
 
 @APP.route('/', methods=('GET', 'POST'))
 def index():
