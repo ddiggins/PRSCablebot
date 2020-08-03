@@ -10,13 +10,12 @@ class SQLConnector:
     """ A wrapper for mySQL to handle data dumps and requests """
 
     # def __init__(self, database_name, table_name, delete_existing, lock):
-    def __init__(self, database_name, table_name, delete_existing, lock, socketio):
+    def __init__(self, database_name, table_name, delete_existing):
 
         """ Set up database if not alrerady configured and assign structure """
 
-        self.lock = lock
-
-        self.socketio = socketio # the socketio object
+        
+        self.socketio = SocketIO(message_queue='redis://')  # the socketio object
 
         # Connect to server and create cursor
         self.database = mysql.connector.connect(
@@ -56,6 +55,10 @@ class SQLConnector:
         self.cursor.execute("CREATE TABLE IF NOT EXISTS " + str(self.table_name) \
             + " (id INT AUTO_INCREMENT PRIMARY KEY, timestamp TIMESTAMP(3),\
                  name VARCHAR(255), value VARCHAR(255))")
+        
+        # Create dummy placeholder line.
+        
+        self.add_data('2000-01-01 00:00:01.000', "dummyName", "dummyValue")
 
 
     def add_data(self, timestamp, name, value):
@@ -140,39 +143,23 @@ class SQLConnector:
         return res[:num_records+1]
 
 
-    def run_database_connector(self, request_queue, record_queue, answer_queue):
+    def run_database(self, record_queue):
         """ Check for incoming requests and process them """
         print ("running database")
+        # Setting old record so the newly retrieved ones have something to compare to
+        old_record = self.query_sensor('*', 1, 'timestamp')
         while 1:
-            if not request_queue.empty():
-                request = request_queue.get()
-                assert len(request) == 3 or len(request) == 4, "INVALID REQUEST: wrong number of arguments"
-                if len(request) == 3:
-                    answer_queue.put(self.query_sensor(request[0], request[1], request[2]))
-                if len(request) == 4:
-                    answer_queue.put(self.query_sensor(request[0], request[1], request[2], request[3]))
 
-            self.lock.acquire()
+            # Write into database
             if not record_queue.empty():
                 print("INSERTING RECORD")
                 data = record_queue.get()
                 self.add_data(data[0], data[1], data[2])
-            self.lock.release()
-            time.sleep(.01)
 
-    def get_latest_record(self, request_queue, answer_queue, lock):
-        '''
-        Will run as a background process constantly checking the database to see whether
-        the records have been updated. If new record appears, it broadcases it as a json message.
-        The json message is picked up by visualization.js and processed.
-        '''
-        old_record = request_record(('*', 1, 'timestamp'), request_queue, answer_queue, lock)
-        
-        while 1:
-            # Checks database for updates every second
-            # time.sleep(1)
-        
-            new_record = request_record(('*', 1, 'timestamp'), request_queue, answer_queue, lock)
+            time.sleep(0.01)
+
+            # reading database for frontend table display
+            new_record = self.query_sensor('*', 1, 'timestamp')
             # print ("NEW RECORD: ", new_record)
             # print ("OLD RECORD: ", old_record)
             
@@ -191,85 +178,66 @@ class SQLConnector:
                 # self.socketio.emit("update table", new_record)
                 self.socketio.emit("update table", new_record, broadcast = True)
                 print("emited update table")
-
-def ack():
-    print('message was recieved')
     
-def request_record(record, request_queue, answer_queue, lock):
-    """ Requests one or more records from the database 
-    record: (name of variable, number of records wanted, variable to sort by, tablename)
-    """
-    
-    request_queue.put(record)
-    # while answer_queue.empty(): time.sleep(.01) # yield
-    while 1:
-        lock.acquire()
-        if answer_queue.empty():
-            lock.release()
-            break
-        lock.release()
-        time.sleep(.01)
-
-    val = answer_queue.get()
-    # Returns a tuple
-    return val
-
-
 def add_record(record, record_queue, lock):
-    """ Requests one or more records from the database """
+    """ Add record to the database """
     lock.acquire()
     record_queue.put(record)
     lock.release()
-
 
 def myconverter(o):
     if isinstance(o, datetime.datetime):
         return o.__str__()
 
+def start_sqlConnector(record_queue):
+    connector = SQLConnector("sensorLogs", "default", False)
+    connector.run_database(record_queue)
+
 if __name__ == "__main__":
-    REQUEST_QUEUE_GLOBAL = Queue()
-    RECORD_QUEUE_GLOBAL = Queue()
-    ANSWER_QUEUE_GLOBAL = Queue()
-    LOCK_GLOBAL = Lock()
+    # REQUEST_QUEUE_GLOBAL = Queue()
+    # RECORD_QUEUE_GLOBAL = Queue()
+    # ANSWER_QUEUE_GLOBAL = Queue()
+    # LOCK_GLOBAL = Lock()
 
-    CONNECTOR = SQLConnector("sensorLogs", "testData", True, LOCK_GLOBAL, socketio)
+    # CONNECTOR = SQLConnector("sensorLogs", "testData", True, LOCK_GLOBAL, socketio)
 
 
-    # CONNECTOR.add_data('1970-01-01 00:00:01.001', 'Sensor1', '5')
-    # # CONNECTOR.print_table()
-    # print(CONNECTOR.query_sensor('Sensor1', 2, 'timestamp'))
+    # # CONNECTOR.add_data('1970-01-01 00:00:01.001', 'Sensor1', '5')
+    # # # CONNECTOR.print_table()
+    # # print(CONNECTOR.query_sensor('Sensor1', 2, 'timestamp'))
 
-    CONNECTOR = Process(target=CONNECTOR.run_database_connector,\
-        args=(REQUEST_QUEUE_GLOBAL, RECORD_QUEUE_GLOBAL, ANSWER_QUEUE_GLOBAL))
-    CONNECTOR.start()
+    # CONNECTOR = Process(target=CONNECTOR.run_database_connector,\
+    #     args=(REQUEST_QUEUE_GLOBAL, RECORD_QUEUE_GLOBAL, ANSWER_QUEUE_GLOBAL))
+    # CONNECTOR.start()
 
-    # Adding records
-    # RECORD_QUEUE_GLOBAL.put(('2000-01-01 00:00:01.000', "testName", "testValue"))
-    # RECORD_QUEUE_GLOBAL.put(('2000-01-01 00:00:02.000', "testName", "testValue"))
-    add_record(('2000-01-01 00:00:01.000', "testName", "testValue"),\
-        RECORD_QUEUE_GLOBAL, LOCK_GLOBAL)
-    add_record(('2000-01-01 00:00:01.000', "testName", "testValue"), \
-        RECORD_QUEUE_GLOBAL, LOCK_GLOBAL)
+    # # Adding records
+    # # RECORD_QUEUE_GLOBAL.put(('2000-01-01 00:00:01.000', "testName", "testValue"))
+    # # RECORD_QUEUE_GLOBAL.put(('2000-01-01 00:00:02.000', "testName", "testValue"))
+    # add_record(('2000-01-01 00:00:01.000', "testName", "testValue"),\
+    #     RECORD_QUEUE_GLOBAL, LOCK_GLOBAL)
+    # add_record(('2000-01-01 00:00:01.000', "testName", "testValue"), \
+    #     RECORD_QUEUE_GLOBAL, LOCK_GLOBAL)
 
-    while not RECORD_QUEUE_GLOBAL.empty(): time.sleep(.01)
-    time.sleep(.5)
-    print("about to get record")
-    RECORD = request_record(('testName', 1, 'timestamp'), REQUEST_QUEUE_GLOBAL, ANSWER_QUEUE_GLOBAL, LOCK_GLOBAL)
-    print("record is" + str(RECORD))
+    # while not RECORD_QUEUE_GLOBAL.empty(): time.sleep(.01)
+    # time.sleep(.5)
+    # print("about to get record")
+    # RECORD = request_record(('testName', 1, 'timestamp'), REQUEST_QUEUE_GLOBAL, ANSWER_QUEUE_GLOBAL, LOCK_GLOBAL)
+    # print("record is" + str(RECORD))
     
-    # Testing for json data to feed into Google Charts
-    print("queried record type: ", type(RECORD)) #This is a tuple
-    # jsonRecord = RECORD[1:] #Removes the first element because it's just the ID.
-    rearranged_record = (RECORD[2], RECORD[3], RECORD[1])
-    jsonRecord = json.dumps(rearranged_record, default = myconverter)
-    print("json record: ", jsonRecord)
-    # # Convert json back to tuple
-    # oldjson = json.loads()
+    # # Testing for json data to feed into Google Charts
+    # print("queried record type: ", type(RECORD)) #This is a tuple
+    # # jsonRecord = RECORD[1:] #Removes the first element because it's just the ID.
+    # rearranged_record = (RECORD[2], RECORD[3], RECORD[1])
+    # jsonRecord = json.dumps(rearranged_record, default = myconverter)
+    # print("json record: ", jsonRecord)
+    # # # Convert json back to tuple
+    # # oldjson = json.loads()
 
-    # Get latest n records
-    LATESTRECORD = request_record(('*', 1, 'timestamp'), REQUEST_QUEUE_GLOBAL, ANSWER_QUEUE_GLOBAL, LOCK_GLOBAL)
-    print("latest record: ", LATESTRECORD)
-    print("latest record type: ", type(LATESTRECORD))
-    #
+    # # Get latest n records
+    # LATESTRECORD = request_record(('*', 1, 'timestamp'), REQUEST_QUEUE_GLOBAL, ANSWER_QUEUE_GLOBAL, LOCK_GLOBAL)
+    # print("latest record: ", LATESTRECORD)
+    # print("latest record type: ", type(LATESTRECORD))
+    # #
 
-    CONNECTOR.kill()
+    # CONNECTOR.kill()
+    pass

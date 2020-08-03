@@ -6,6 +6,5 @@ from wtforms.validators import DataRequired
 
 class SerialSendForm(FlaskForm):
     """Serial Send"""
-    json = StringField('Data', [
-        DataRequired()])
+    json = StringField('Data', [DataRequired()])
     submit = SubmitField('Submit')

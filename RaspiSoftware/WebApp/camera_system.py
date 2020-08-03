@@ -1,9 +1,10 @@
 """ Process to take images on the Pi at set intervals and save them to disk and database """
 
 import time
-from picamera import PiCamera
+# from picamera import PiCamera
 import datetime
 from multiprocessing import Queue, Process
+import os
 
 
 class Camera:
@@ -13,12 +14,12 @@ class Camera:
 
         """ Initialize a camera object with given settings """
 
-        self.camera = PiCamera()
-        self.camera.resolution = resolution
-        self.camera.framerate = 15 # Required to set high resolution but not used
+        # self.camera = PiCamera()
+        # self.camera.resolution = resolution
+        # self.camera.framerate = 15 # Required to set high resolution but not used
         self.add_timestamp = add_timestamp
         self.interval = interval # Amount of seconds between images
-        self.camera.annotate_text_size = 50
+        # self.camera.annotate_text_size = 50
         self.image_folder_path = image_folder_path
         self.record_queue = record_queue
 
@@ -27,14 +28,14 @@ class Camera:
 
         timestamp = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
         print("ABOUT TO START PREVIEW")
-        self.camera.start_preview()
-        self.camera.annotate_text = timestamp + " UTC"
+        # self.camera.start_preview()
+        # self.camera.annotate_text = timestamp
         time.sleep(2)
         image_name = self.image_folder_path + "/image" + str(timestamp) + ".jpg"
         print("ABOUT TO CAPTURE IMAGE")
-        self.camera.capture(image_name, quality=10)
-        print("IMAGE CAPTURED")
-        self.camera.stop_preview()
+        # self.camera.capture(image_name, quality=10)
+        # print("IMAGE CAPTURED")
+        # self.camera.stop_preview()
         print("PREVIEW ENDED")
         return timestamp, image_name
 

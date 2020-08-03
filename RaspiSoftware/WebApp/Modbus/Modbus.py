@@ -20,14 +20,14 @@ from collections import OrderedDict
 import struct
 import logging
 from datetime import datetime
-from table_extractor import csv_to_dictionary
+# from table_extractor import csv_to_dictionary
 
         
 FORMAT = ('%(asctime)-15s %(threadName)-15s'
     ' %(levelname)-8s %(module)-15s:%(lineno)-8s %(message)s')
 logging.basicConfig(format=FORMAT)
 log = logging.getLogger()
-log.setLevel(logging.DEBUG)
+log.setLevel(logging.ERROR)
 
 UNIT = 0x0
 
@@ -153,6 +153,8 @@ class Modbus:
         properties = self.AppendixC.get(unit_id)
         return properties
 
+def start_modbus():
+    modbus = Modbus(log)
 
 if __name__ == "__main__":
     modbus = Modbus(log)
