@@ -69,7 +69,7 @@ class SerialCommunication:
         """Write records to database"""
         data = self.interpret_json(line) #Sets updated self.data_dict
         if data is None: return
-        print("data:", data)
+        # print("data:", data)
         current_time = datetime.now().isoformat()
         timestamp = str(current_time)
         print("Timestamp:" + timestamp)
