@@ -37,8 +37,8 @@ void loop(){
 
     // Create list of sensors and structure to hold them
     typedef struct Objects{
-        const static int number = 6; // Number of sensors
-        GenericObject* items[number];
+        int number = 6; // Number of sensors
+        GenericObject* items[6];
     } Objects;
 
 

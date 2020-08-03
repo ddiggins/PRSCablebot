@@ -6,7 +6,8 @@
 
 #include <string.h>
 #include <ArduinoJson.h>
-#include <Servo.h>
+//#include </home/colin/Downloads/arduino-1.8.9/hardware/teensy/avr/libraries/Servo/Servo.h>
+#include<Servo.h>
 // #include <Encoder.h>
 #include <PID_v1.h>
 #include "object.h"
@@ -23,7 +24,7 @@ class Motor: public GenericObject{
     Attribute speed = {"speed", "1"};
     Attribute mode = {"mode", "1"}; // Possible modes are power (0), position (1), and speed (2)
     Attribute update_rate = {"updateRate", "1"};
-    Attribute target = {"target", "1000"}; // Target to run to (steps)
+    Attribute target = {"target", "1000.0"}; // Target to run to (steps)
     unsigned long last_time = 0;  // Variable for motor update update_rate
     int update_delay = 1000;  // Milliseconds between sensor printouts
     unsigned long update_time = 0;  // Variable for printout timing
@@ -49,12 +50,14 @@ class Motor: public GenericObject{
     MotorEncoder* encoder;
 
     //Global variables for PID input/output
-    double Setpoint_p, Input_p, Output_p = 0.0;
-    double Setpoint_s, Input_s, Output_s = 0.0;
+    double Input_p, Output_p = 0.0;
+    double Setpoint_p= 0.0;
+    double Input_s, Output_s = 0.0;
+    double Setpoint_s= 0.0;
    //  //Global PID tuning parameters
     double Kp_p=1, Ki_p=0.05, Kd_p=0.01;
    // double Kp_p=1, Ki_p=0, Kd_p=0;
-    double Kp_s=100, Ki_s=50, Kd_s=0;
+    double Kp_s=70, Ki_s=50, Kd_s=0;
     // Define pid class with pointers to global variables
     PID* pid_p = new PID(&Input_p, &Output_p, &Setpoint_p, Kp_p, Ki_p, Kd_p, DIRECT);
    //  PID* pid_p = new PID(&Input_p, &Output_p, &Setpoint_p, Kp_p, Ki_p, Kd_p, DIRECT);
