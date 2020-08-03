@@ -32,11 +32,12 @@ class Deployment:
         """
 
     
-    def __init__(self, serial, file):
+    def __init__(self, serial, file, encoder_pipe):
         """ Create a deployment object and define
             possible commands to be executed """
 
         self.socketio = SocketIO(message_queue='redis://')
+        self.pipe = encoder_pipe
         self.serial = serial # pipe SERIAL_CHILD
         self.filename = file
         self.document = open(self.filename, "r")
@@ -54,6 +55,7 @@ class Deployment:
             "TAKE_MEASUREMENT": self.take_measurement,
             "RESET_ENCODER": self.reset_encoder_zero
         }
+
 
     def interpret_line(self, line):
         """ Checks the command found in the line with the commands dictionary.
@@ -108,9 +110,20 @@ class Deployment:
 
         # Wait until encoder position is what we want
         while 1:
-            self.socketio.emit("testing deployment socket", namespace='/test')
-            self.socketio.on_event('update table', self.update_position)
-            if abs(self.position - steps) < 50:
+
+            if self.pipe.poll() is True:
+                data = self.pipe.recv()
+                data = json.loads(data)
+                # print("data:", data)
+                # print(type(data))
+                # print("ENCODER?", data[0])
+                if data[0] == "encoder":
+                    self.position = float(data[1])
+                    print('self.position: ', self.position)
+
+            # self.socketio.emit("testing deployment socket")
+            # self.socketio.on_event('update table', self.update_position)
+            if abs(self.position - steps) < 250:
                 break
             time.sleep(.1)
 
@@ -130,8 +143,8 @@ class Deployment:
             if line is not []:
                 self.interpret_line(line)
 
-def start_deployment(serial, file):
-    deployer = Deployment(serial, file)
+def start_deployment(serial, file, pipe):
+    deployer = Deployment(serial, file, pipe)
     deployer.run_deployer()
 
 

@@ -84,8 +84,11 @@ def update_motor_mode(data):
 def run_deployment(file):
     """ Runs a deployment for a given file """
     print("running deployment")
+    # DEPLOYER = Process(target=deployment.start_deployment,\
+    #     args=(SERIAL_PARENT,file))
     DEPLOYER = Process(target=deployment.start_deployment,\
-        args=(SERIAL_PARENT,file))
+        args=(SERIAL_PARENT,file, ENCODER_CHILD))
+
     DEPLOYER.start()
 
     # deployment = Deployment(SERIAL_PARENT, file)
@@ -93,7 +96,7 @@ def run_deployment(file):
     # deployment_process.start()
     # deployment_process.join()
 
-@SOCKETIO.on("testing deployment socket", namespace='/test')
+@SOCKETIO.on("testing deployment socket")
 def test_deployment():
     print("GOT SOCKET MESSAGE FROM DEPLOYMENT")
 
@@ -150,10 +153,13 @@ def index():
 
 if __name__ == '__main__':
 
-    # # Pipes to Webapp
+    # Pipes to Webapp
     SERIAL_CHILD, SERIAL_PARENT = Pipe()
+
+    # Pipes for Encoder
+    ENCODER_CHILD, ENCODER_PARENT = Pipe()
     
-    # # Queues for sql database connector
+    # Queues for sql database connector
     RECORD_QUEUE = Queue()
     
     # Starts camera
@@ -162,7 +168,7 @@ if __name__ == '__main__':
 
     # Starts sql database connector that handles writing and reading(broadcasts to socket)
     DATABASE_CONNECTOR = Process(target=sqlConnector.start_sqlConnector,\
-        args=(RECORD_QUEUE,))
+        args=(RECORD_QUEUE,ENCODER_PARENT))
     DATABASE_CONNECTOR.start()
 
     # Starts thread that runs serial communication.

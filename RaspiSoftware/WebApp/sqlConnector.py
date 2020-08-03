@@ -10,12 +10,12 @@ class SQLConnector:
     """ A wrapper for mySQL to handle data dumps and requests """
 
     # def __init__(self, database_name, table_name, delete_existing, lock):
-    def __init__(self, database_name, table_name, delete_existing):
+    def __init__(self, database_name, table_name, delete_existing, pipe):
 
         """ Set up database if not alrerady configured and assign structure """
 
         self.socketio = SocketIO(message_queue='redis://')  # the socketio object
-
+        self.encoder_pipe = pipe
         # Connect to server and create cursor
         self.database = mysql.connector.connect(
             host="localhost",
@@ -174,6 +174,7 @@ class SQLConnector:
                 new_record = json.dumps(new_record, default = myconverter) # Converts into Json
                 # print("json new record: ", new_record)
                 self.socketio.emit("update table", new_record, broadcast = True)
+                self.encoder_pipe.send(new_record)
                 # print("emited update table")
     
 def add_record(record, record_queue, lock):
@@ -186,8 +187,8 @@ def myconverter(o):
     if isinstance(o, datetime.datetime):
         return o.__str__()
 
-def start_sqlConnector(record_queue):
-    connector = SQLConnector("sensorLogs", "default", False)
+def start_sqlConnector(record_queue, pipe):
+    connector = SQLConnector("sensorLogs", "default", False, pipe)
     connector.run_database(record_queue)
 
 if __name__ == "__main__":
