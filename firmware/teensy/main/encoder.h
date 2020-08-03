@@ -6,7 +6,9 @@
 
 #include <string.h>
 #include <ArduinoJson.h>
-#include <Encoder.h>
+//#include </home/colin/Downloads/arduino-1.8.9/hardware/teensy/avr/libraries/Encoder/Encoder.h>
+//#include <Encoder.h>
+#include "QuadEncoder.h"
 #include "object.h"
 
 
@@ -29,7 +31,7 @@ class MotorEncoder: public GenericObject{
  public:
 
     // Create a servo object for the motor
-    Encoder* encoder = new Encoder(pin1, pin2);
+    QuadEncoder* encoder= new QuadEncoder(1, 0, 1, 0, 4);
     // Attributes of sensor
     Attribute id = {"id", "Generic Sensor"};
 

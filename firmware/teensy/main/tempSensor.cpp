@@ -1,7 +1,9 @@
 // Firmware for the Si7201 temp/humidity sensor
 
 #include <ArduinoJson.h>
-#include <Adafruit_Si7021.h>
+//#include <Adafruit_Si7021.h>
+#include <Wire.h>
+#include <Si7021.h> // Teensy version
 #include "tempSensor.h"
 
 int TempSensor::update(JsonDocument* params){ // Same as doc
@@ -26,13 +28,16 @@ int TempSensor::run(){
     if ((millis()-last_time) > (1000/update_rate.value.toInt())){
 
         if (enabled.value.toInt()){
+
+//            heaterOnOff = !heaterOnOff;
+            sensor->setHeater(0); // Turn heater on or off
             Serial.print(F("{\"id\" : \""));
             Serial.print(id_name());
             Serial.print(F("Temp"));
             Serial.print(F("\", \"enabled\" : "));
             Serial.print(enabled.value);
             Serial.print(F(", \"temperature\" : "));
-            Serial.print(sensor.readTemperature());
+            Serial.print(sensor->readTemp());
             Serial.println(F("}")); 
             Serial.print(F("{\"id\" : \""));
             Serial.print(id_name());
@@ -40,7 +45,7 @@ int TempSensor::run(){
             Serial.print(F("\", \"enabled\" : "));
             Serial.print(enabled.value);
             Serial.print(F(", \"humidity\" : "));
-            Serial.print(sensor.readHumidity()); 
+            Serial.print(sensor->readHumidity()); 
             Serial.println(F("}"));
         }
         last_time = millis();
@@ -55,11 +60,14 @@ TempSensor::TempSensor(String name){
     attributes.attrs[1] = &enabled;
     attributes.attrs[2] = &update_rate;
     attributes.number = 3;
+    sensor->begin();
 
     // Initialize sensor
-    if (!sensor.begin()){
-        Serial.println(F("Error: Unable to find temp/humidity sensor"));
-    }
+//    sensor->setHumidityRes(12);
+//    if (!sensor->begin()){
+//        Serial.println(F("Error: Unable to find temp/humidity sensor"));
+//    }
+    sensor->setHeater(0);
 }
 
 String TempSensor::id_name(){

@@ -6,7 +6,9 @@
 
 #include <ArduinoJson.h>
 #include <string.h>
-#include <Adafruit_Si7021.h>
+#include <Wire.h>
+//#include <Adafruit_Si7021.h>
+#include <Si7021.h> // Teensy version
 #include "object.h"
 
 
@@ -18,9 +20,10 @@ class TempSensor: public GenericObject{
 
  protected:
     Attribute enabled = {"enabled", "0"};
-    Attribute update_rate = {"updateRate", "1"};
+    Attribute update_rate = {"updateRate", "100"};
     unsigned long last_time = 0; // Variable for timing
-    Adafruit_Si7021 sensor = Adafruit_Si7021();
+    SI7021* sensor = new SI7021();
+//    uint8_t heaterOnOff = 0;
 
  public:
 
