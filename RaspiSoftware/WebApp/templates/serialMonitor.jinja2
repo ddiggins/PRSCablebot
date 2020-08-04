@@ -44,21 +44,25 @@
 </div>
 
 <div id="upload" class="uploadbox" align="center">
-  <br>
-  <p class="semibold" style="top:200px">Select a file to upload:</p>
-  <form method="post" action="/" enctype="multipart/form-data">
-      <br>
-      <dl>
-  		<p>
-  			<input id="file" type="file" class="inputfile" name="file" autocomplete="off" accept="text/plain" required/>
+    <br>
+    <p class="semibold" style="top:200px">Select a file to upload:</p>
+    <form method="post" action="/" enctype="multipart/form-data">
+        <br>
+        <dl>
+        <p>
+            <input id="file" type="file" class="inputfile" name="file" autocomplete="off" accept="text/plain" required/>
         <label for="file" class="semibold">Browse Files</label>
-      </p>
-      </dl>
-      <p>
-  		  <input type="submit" class="button semibold blue1" value="Deploy Robot">
-  	  </p>
-      <br>
-  </form>
+        </p>
+        </dl>
+        <p>
+            <input type="submit" class="button semibold blue1" value="Deploy Robot">
+        </p>
+        <br>
+    </form>
+    <!-- Progress Bar -->
+    <label for="deploymentProgress">Deployment progress:</label>
+    <progress id="deploymentProgress" value="0" max="100"> </progress>
+
 </div>
 
 <!-- <div>

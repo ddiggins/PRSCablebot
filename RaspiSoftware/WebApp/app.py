@@ -31,7 +31,7 @@ SECRET_KEY = os.urandom(32)
 APP.config['SECRET_KEY'] = SECRET_KEY
 
 # Initialize Socket.io
-SOCKETIO = SocketIO(APP, message_queue='redis://')
+SOCKETIO = SocketIO(APP, message_queue='redis://', async_mode='threading')
 
 # Lists to display incoming and outgoing commands
 INCOMING = []
@@ -91,6 +91,8 @@ def run_deployment(file):
 
     DEPLOYER.start()
 
+    
+
     # deployment = Deployment(SERIAL_PARENT, file)
     # deployment_process = Process(target=deployment.run)
     # deployment_process.start()
@@ -122,6 +124,7 @@ def index():
         str_message = json.dumps({"id" : "Motor1", "target": json_message})
         SERIAL_PARENT.send(str_message)
         OUTGOING.append(str_message)
+        
     # Run deployment
     if request.method == 'POST':
         # check if the post request has the file part
@@ -139,7 +142,7 @@ def index():
             SOCKETIO.emit('run deployment', filename, broadcast=False)
             run_deployment('uploads/' + str(filename))
             print('File successfully uploaded')
-            return redirect('/')
+            # return redirect('/')
         else:
             print('Allowed file types are .txt')
             return redirect(request.url)

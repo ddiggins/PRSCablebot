@@ -101,7 +101,7 @@ class Deployment:
         #from database
         position = float(position[0]) + float(self.zero_position[0])
         print("Going to %s meters" % position)
-        steps = position * 2717 # Convert m to steps
+        steps = position * 2887 # Convert m to steps
         self.target = steps
         print(self.target)
         self.serial.send('{"id":"Motor1", "mode":"1","target":"%s"}' % steps)
@@ -123,7 +123,8 @@ class Deployment:
 
             # self.socketio.emit("testing deployment socket")
             # self.socketio.on_event('update table', self.update_position)
-            if abs(self.position - steps) < 250:
+            if abs(self.position - steps) < 400:
+                time.sleep(1)
                 break
             time.sleep(.1)
 
@@ -139,9 +140,18 @@ class Deployment:
         self.zero_position = position
 
     def run_deployer(self):
+        total_lines = len([x for x in self.document.readlines() if len(x) > 1])
+        self.document.seek(0)
+        current_line = 0
         for line in self.document:
-            if line is not []:
+            if len(line) > 1:  # Ignore blank lines with \n character
                 self.interpret_line(line)
+                current_line += 1
+                percentage = int((current_line * 100) / total_lines)
+                print("Progress in deployment: ", percentage)
+                self.pipe.send(percentage)
+                print("sent progress val through pipe")
+
 
 def start_deployment(serial, file, pipe):
     deployer = Deployment(serial, file, pipe)

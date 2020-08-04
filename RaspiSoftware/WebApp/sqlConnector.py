@@ -10,12 +10,12 @@ class SQLConnector:
     """ A wrapper for mySQL to handle data dumps and requests """
 
     # def __init__(self, database_name, table_name, delete_existing, lock):
-    def __init__(self, database_name, table_name, delete_existing, pipe):
+    def __init__(self, database_name, table_name, delete_existing, encoder_pipe):
 
         """ Set up database if not alrerady configured and assign structure """
 
         self.socketio = SocketIO(message_queue='redis://')  # the socketio object
-        self.encoder_pipe = pipe
+        self.pipe = encoder_pipe
         # Connect to server and create cursor
         self.database = mysql.connector.connect(
             host="localhost",
@@ -146,7 +146,25 @@ class SQLConnector:
         print ("running database")
         # Setting old record so the newly retrieved ones have something to compare to
         old_record = self.query_sensor('*', 1, 'timestamp')
+        test = True
         while 1:
+            # Workaround for progress bar, should be removed once we fix socketio in deployment.py
+            if self.pipe.poll() is True:
+            # if test is True:
+                progress_val = self.pipe.recv()
+                print("progress:", progress_val)
+                print("type:", type(progress_val))
+                self.socketio.emit("update progress bar", progress_val)
+                self.socketio.sleep(0.10)
+                # self.socketio.emit("update progress bar", 10)
+                # time.sleep(1)
+                # self.socketio.emit("update progress bar", 30)
+                # time.sleep(1)
+                # self.socketio.emit("update progress bar", 40)
+                # time.sleep(1)
+                # self.socketio.emit("update progress bar", 60)
+                # time.sleep(1)
+                # test = False
 
             # Write into database
             if not record_queue.empty():
@@ -164,8 +182,7 @@ class SQLConnector:
             # Check that the record has updated.
             record_equality = (new_record == old_record)
             # print ("RECORD EQUALITY: ", record_equality)
-            # if (new_record != old_record):
-            if (record_equality == False):
+            if (not record_equality):
                 # Update old record to new record since we already compared them
                 old_record = new_record
                 # Removes id of record, reorders so that the sensor name is first.
@@ -173,8 +190,8 @@ class SQLConnector:
                 new_record = (new_record[2], new_record[3], new_record[1])
                 new_record = json.dumps(new_record, default = myconverter) # Converts into Json
                 # print("json new record: ", new_record)
-                self.socketio.emit("update table", new_record, broadcast = True)
-                self.encoder_pipe.send(new_record)
+                self.socketio.emit("update table", new_record, broadcast=True)
+                self.pipe.send(new_record)
                 # print("emited update table")
     
 def add_record(record, record_queue, lock):
