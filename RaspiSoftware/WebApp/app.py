@@ -48,6 +48,7 @@ def allowed_file(filename):
 @SOCKETIO.on('enable motor')
 def enable_motor():
     """ Enables motor by sending json value """
+    print("in enable motor in app.py")
     start_motor = '{"id" : "Motor1", "enabled" : "1"}'
     SERIAL_PARENT.send(start_motor)
     OUTGOING.append(start_motor)
@@ -68,7 +69,8 @@ def update_motor_speed(data):
 
 @SOCKETIO.on('new motor target')
 def update_motor_target(data):
-    """Changes the motor target to value dictated by the slider."""
+    """Changes the motor target to value dictated by the 
+    encoder speed slider or position input field."""
     slider_target = json.dumps({"id" : "Motor1", "target": data})
     SERIAL_PARENT.send(slider_target)
     OUTGOING.append(slider_target)
@@ -162,7 +164,7 @@ if __name__ == '__main__':
     RECORD_QUEUE = Queue()
     
     # Starts camera
-    CAMERA_PROCESS = Process(target=Camera.start_camera, args=((2592, 1944), 10, "Images", RECORD_QUEUE))
+    CAMERA_PROCESS = Process(target=Camera.start_camera, args=((2592, 1944), 300, "Images", RECORD_QUEUE))
     CAMERA_PROCESS.start()
 
     # Starts sql database connector that handles writing and reading(broadcasts to socket)

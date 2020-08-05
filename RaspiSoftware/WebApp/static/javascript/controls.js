@@ -42,10 +42,23 @@ var send_encoder_speed = function() {
     $("#outgoing").load(location.href + " #outgoing");
 }
 
+var send_encoder_position = function() {
+    /*  send encoder speed to python via Websockets
+        called by changing slider value */
+    var input = document.getElementById("encoderPosition");
+    position = input.value*2887 //Converting meters to encoder steps
+    console.log('Sending encoder position!');
+    socket.emit('new motor target', position);
+    input.value=''; // Resetting input field to zero
+    $("#outgoing").load(location.href + " #outgoing");
+}
+
 var toggle_motor = function(){
     /*  send enable or disable command to flask */
+    console.log('inside toggle motor')
     var elem = document.getElementById("motorStatus");
     if (elem.value=="Enable Motor"){
+        console.log("emit enable motor")
         socket.emit('enable motor');
         elem.value = "Disable Motor";
     }

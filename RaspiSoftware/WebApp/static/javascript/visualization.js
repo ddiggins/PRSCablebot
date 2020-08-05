@@ -41,14 +41,15 @@ socket.on('update progress bar', function(progressVal){
   console.log("updating progress bar");
   console.log("progressvaltype:" + typeof progressVal)
   console.log('progress val:' + progressVal)
-  var progressBar = document.getElementById("deploymentProgress");
-  progressBar.value = progressVal;
+  var progressBar = document.getElementById("deploymentProgress");  
+  document.getElementsByClassName('progress-bar').item(0).setAttribute('aria-valuenow',progressVal);
+  document.getElementsByClassName('progress-bar').item(0).setAttribute('style','width:'+Number(progressVal)+'%');
 });
 
 socket.on('update table', function(jsonData){
   /** Calls function that updates and redraws table.
    */
-  // console.log("recieved update table on visualization");
+  console.log("recieved update table on visualization");
   updateTable(jsonData); //update table with json from the database
   drawTable();
   data.sort([{column: 2}, {column: 1}]);
