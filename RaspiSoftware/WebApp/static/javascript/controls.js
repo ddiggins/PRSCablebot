@@ -4,7 +4,11 @@ var socket = io.connect('http://' + document.domain + ':' + location.port);
 // Verify that connection has been established
 socket.on('connect', function(){
     console.log('Websocket connected!');
-});       
+});      
+
+socket.on('testing deployment socket', function(){
+    console.log('getting message from deployment')
+});
 
 var update_power_slider = function() {
     /* Update slider value */
@@ -93,3 +97,22 @@ var toggle_position = function(){
     }
     $("#outgoing").load(location.href + " #outgoing");
 }
+
+// upload file
+// $(function() {
+//     $('#uploadFileButton').click(function() {
+//         var form_data = new FormData($('#upload')[0]);
+//         $.ajax({
+//             type: 'POST',
+//             url: '/',
+//             data: form_data,
+//             contentType: false,
+//             cache: false,
+//             processData: false,
+//             async: false,
+//             success: function(data) {
+//                 console.log('Successfully uploaded file!');
+//             },
+//         });
+//     });
+// });

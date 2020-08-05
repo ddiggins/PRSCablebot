@@ -1,5 +1,7 @@
 ENABLE Motor1 encoder
 RESET_ENCODER 0
-GO_TO -.5
-GO_TO -1
-GO_TO -.5
+PAUSE 2
+DISABLE Motor1
+GO_TO 0
+PAUSE 1
+

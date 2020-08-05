@@ -5,7 +5,7 @@ monkey.patch_all(thread=False)
 import os
 from multiprocessing import Queue, Process, Pipe
 from threading import Lock
-from flask import Flask, render_template, url_for, redirect, flash, request
+from flask import Flask, render_template, url_for, redirect, flash, request, jsonify
 from flask_socketio import SocketIO, emit, send
 from forms import SerialSendForm
 import SerialCommunication
@@ -31,7 +31,7 @@ SECRET_KEY = os.urandom(32)
 APP.config['SECRET_KEY'] = SECRET_KEY
 
 # Initialize Socket.io
-SOCKETIO = SocketIO(APP, message_queue='redis://', async_mode='threading')
+SOCKETIO = SocketIO(APP, message_queue='redis://')
 
 # Lists to display incoming and outgoing commands
 INCOMING = []
@@ -84,24 +84,21 @@ def update_motor_mode(data):
 def run_deployment(file):
     """ Runs a deployment for a given file """
     print("running deployment")
-    # DEPLOYER = Process(target=deployment.start_deployment,\
-    #     args=(SERIAL_PARENT,file))
+
+    # DEPLOYER = Deployment(SERIAL_PARENT, ENCODER_CHILD, file)
+    # DEPLOYER_PROCESS = Process(target=DEPLOYER.test)
+    # DEPLOYER_PROCESS.start()
+
     DEPLOYER = Process(target=deployment.start_deployment,\
-        args=(SERIAL_PARENT,file, ENCODER_CHILD))
+        args=(SERIAL_PARENT, ENCODER_CHILD, file))
 
+    # DEPLOYER_PROCESS = Process(target=DEPLOYER.test)
     DEPLOYER.start()
-
-    
 
     # deployment = Deployment(SERIAL_PARENT, file)
     # deployment_process = Process(target=deployment.run)
     # deployment_process.start()
     # deployment_process.join()
-
-@SOCKETIO.on("testing deployment socket")
-def test_deployment():
-    print("GOT SOCKET MESSAGE FROM DEPLOYMENT")
-
 
 @APP.route('/', methods=('GET', 'POST'))
 def index():
@@ -140,12 +137,11 @@ def index():
             file.save(os.path.join('uploads', filename))
             print(filename)
             SOCKETIO.emit('run deployment', filename, broadcast=False)
-            run_deployment('uploads/' + str(filename))
+            file_location = 'uploads/' + str(filename)
+            run_deployment(file_location)
             print('File successfully uploaded')
-            # return redirect('/')
-        else:
-            print('Allowed file types are .txt')
-            return redirect(request.url)
+            # returns 
+            return '', 204
 
     template_data = {
         'incoming':INCOMING,
@@ -178,6 +174,10 @@ if __name__ == '__main__':
     COMMUNICATOR = Process(target=SerialCommunication.start_serial_communication,\
             args=(RECORD_QUEUE, SERIAL_CHILD))
     COMMUNICATOR.start()
+
+    # DEPLOYER = Deployment(SERIAL_PARENT, ENCODER_CHILD)
+    # DEPLOYER_PROCESS = Process(target=DEPLOYER.test)
+    # DEPLOYER_PROCESS.start()
 
     # Runs app wrapped in Socket.io. "debug" and "use_reloader" need to be false
     # or else Flask creates a child process and re-runs main.

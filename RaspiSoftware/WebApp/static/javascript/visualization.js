@@ -1,9 +1,22 @@
 // Establish socketIO connection
 var socket = io.connect('http://' + document.domain + ':' + location.port);
 
+var clients = [];
+
+// socket.on('connect', function(client){
+//   console.log('Websocket connected on visualization!');
+//   // console.log(' %s sockets connected on visualiztion', io.engine.clientsCount);
+//   clients.push(client);
+
+//   client.on('disconnect', function() {
+//     console.log("disconnect: ", socket.id);
+//     clients.splice(clients.indexOf(client), 1);
+//   });
+// });
 socket.on('connect', function(){
   console.log('Websocket connected on visualization!');
-});
+});      
+
 
 // Google charts set up
 google.charts.load('current', {'packages':['table']});
