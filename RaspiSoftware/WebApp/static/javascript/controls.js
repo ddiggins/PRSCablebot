@@ -53,79 +53,59 @@ var send_encoder_position = function() {
     $("#outgoing").load(location.href + " #outgoing");
 }
 
-var toggle_motor = function(){
+var send_serial_command = function() {
+    /*  send encoder speed to python via Websockets
+        called by changing slider value */
+    var input = document.getElementById("serialSend");
+    command = input.value
+    console.log('command type' + typeof(command))
+    console.log('Sending serial command!');
+    socket.emit('send serial command', command);
+    input.value=''; // Resetting input field to zero
+    $("#outgoing").load(location.href + " #outgoing");
+}
+
+function toggle_motor(){
     /*  send enable or disable command to flask */
     console.log('inside toggle motor')
-    var elem = document.getElementById("motorStatus");
+    var elem = document.getElementById("motorStatus1");
     if (elem.value=="Enable Motor"){
         console.log("emit enable motor")
         socket.emit('enable motor');
         elem.value = "Disable Motor";
+        document.getElementById("motorStatus2").value = "Disable Motor";
+        document.getElementById("motorStatus3").value = "Disable Motor";
+        document.getElementById("motorStatus4").value = "Disable Motor";
+
     }
     else{
         socket.emit('disable motor');
         elem.value = "Enable Motor";
+        document.getElementById("motorStatus2").value = "Enable Motor";
+        document.getElementById("motorStatus3").value = "Enable Motor";
+        document.getElementById("motorStatus4").value = "Enable Motor";
+
+
     } 
     $("#outgoing").load(location.href + " #outgoing");
 }
 
-var toggle_power = function(){
-    /*  turn on power mode */
-    var power = document.getElementById("powerStatus");
-    var speed = document.getElementById("speedStatus");
-    var position = document.getElementById("positionStatus");
-    if (power.value=="Power Disabled"){
-        socket.emit('new motor mode', "0");
-        power.value = "Power Enabled";
-        speed.value = "Speed Disabled";
-        position.value = "Position Disabled";
-    }
-    $("#outgoing").load(location.href + " #outgoing");
-}
+// Toggle Power
+$("#v-pills-power-tab").on('show.bs.tab', function() {
+    console.log('toggle motor from tab');
+    socket.emit('new motor mode', "0");
+});
 
-var toggle_speed = function(){
-    /*  turn on speed mode */
-    var power = document.getElementById("powerStatus");
-    var speed = document.getElementById("speedStatus");
-    var position = document.getElementById("positionStatus");
-    if (speed.value=="Speed Disabled"){
-        socket.emit('new motor mode', "2");
-        power.value = "Power Disabled";
-        speed.value = "Speed Enabled";
-        position.value = "Position Disabled";
-    }
-    $("#outgoing").load(location.href + " #outgoing");
-}
+// Toggle Speed
+$("#v-pills-speed-tab").on('show.bs.tab', function() {
+    console.log('toggle speed from tab');
+    socket.emit('new motor mode', "2");
+});
 
-var toggle_position = function(){
-    /*  turn on position mode */
-    var power = document.getElementById("powerStatus");
-    var speed = document.getElementById("speedStatus");
-    var position = document.getElementById("positionStatus");
-    if (position.value=="Position Disabled"){
-        socket.emit('new motor mode', "1");
-        power.value = "Power Disabled";
-        speed.value = "Speed Disabled";
-        position.value = "Position Enabled";
-    }
-    $("#outgoing").load(location.href + " #outgoing");
-}
 
-// upload file
-// $(function() {
-//     $('#uploadFileButton').click(function() {
-//         var form_data = new FormData($('#upload')[0]);
-//         $.ajax({
-//             type: 'POST',
-//             url: '/',
-//             data: form_data,
-//             contentType: false,
-//             cache: false,
-//             processData: false,
-//             async: false,
-//             success: function(data) {
-//                 console.log('Successfully uploaded file!');
-//             },
-//         });
-//     });
-// });
+// Toggle Position
+$("#v-pills-position-tab").on('show.bs.tab', function() {
+    console.log('toggle position from tab');
+    socket.emit('new motor mode', "1");
+    $("#outgoing").load(location.href + " #outgoing");
+});

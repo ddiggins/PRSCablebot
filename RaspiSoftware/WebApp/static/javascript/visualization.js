@@ -112,7 +112,22 @@ function updateTable(jsonData) {
 
 };
 
+var cssClassNames = {
+  // headerRow: 'someclass',
+  // tableRow: 'someclass',
+  // oddTableRow: 'someclass',
+  // selectedTableRow: 'someclass',
+  // hoverTableRow: 'someclass',
+  // headerCell: 'someclass',
+  // tableCell: 'someclass',
+  // rowNumberCell: 'someclass'
+  headerRow: 'thead', 
+}
+
 function drawTable(){
-  table.draw(data, {showRowNumber: true, width: '100%', height: '100%'});
+  table.draw(data, {cssClassNames, showRowNumber: true, width: '100%', height: '100%', allowHtml: true});
+  var className = 'google-visualization-table-table';
+  $('.'+className).removeClass(className);
 };
+
 

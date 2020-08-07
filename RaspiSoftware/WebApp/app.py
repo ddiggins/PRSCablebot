@@ -45,10 +45,17 @@ ALLOWED_EXTENSIONS = set(['txt'])
 def allowed_file(filename):
 	return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+@SOCKETIO.on('send serial command')
+def send_serial_command(data):
+    """ Enables motor by sending json value """
+    print(data)
+    serial_command = data
+    SERIAL_PARENT.send(serial_command)
+    OUTGOING.append(serial_command)
+
 @SOCKETIO.on('enable motor')
 def enable_motor():
     """ Enables motor by sending json value """
-    print("in enable motor in app.py")
     start_motor = '{"id" : "Motor1", "enabled" : "1"}'
     SERIAL_PARENT.send(start_motor)
     OUTGOING.append(start_motor)
@@ -86,21 +93,9 @@ def update_motor_mode(data):
 def run_deployment(file):
     """ Runs a deployment for a given file """
     print("running deployment")
-
-    # DEPLOYER = Deployment(SERIAL_PARENT, ENCODER_CHILD, file)
-    # DEPLOYER_PROCESS = Process(target=DEPLOYER.test)
-    # DEPLOYER_PROCESS.start()
-
     DEPLOYER = Process(target=deployment.start_deployment,\
         args=(SERIAL_PARENT, ENCODER_CHILD, file))
-
-    # DEPLOYER_PROCESS = Process(target=DEPLOYER.test)
     DEPLOYER.start()
-
-    # deployment = Deployment(SERIAL_PARENT, file)
-    # deployment_process = Process(target=deployment.run)
-    # deployment_process.start()
-    # deployment_process.join()
 
 @APP.route('/', methods=('GET', 'POST'))
 def index():
