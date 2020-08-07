@@ -42,8 +42,8 @@ def csv_to_dictionary(csvFile):
 
     return data_dict
 
-print(csv_to_dictionary('AppendixB_paramNumsAndLocations.csv'))
-print("\n")
-print(csv_to_dictionary('AppendixC_unitIDs.csv'))
+# print(csv_to_dictionary('AppendixB_paramNumsAndLocations.csv'))
+# print("\n")
+# print(csv_to_dictionary('AppendixC_unitIDs.csv'))
 
 

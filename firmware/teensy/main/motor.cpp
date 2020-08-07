@@ -45,22 +45,35 @@ int Motor::run() {
             // Serial.println(encoder->encoder->read());
 
             if (mode.value.toInt() == 1){
-                // Encoder control
+
+                Input_p = target.value.toFloat() - encoder->encoder->read(); // Calculate error
+//                Input_p = 0.0;
+                if (pid_p->Compute()){
+                  // Encoder control
+                  new_time_s = millis();
 
 //                if (!motor.attached()) {
 //                    motor.attach(motorPWM);
 //                }
 
-                Input_p = target.value.toFloat() - encoder->encoder->read(); // Calculate error
-//                Input_p = 0.0;
-                pid_p->Compute();
-//                 Serial.print(encoder->encoder->read());
-//                 Serial.print(", ");
-//                 Serial.println(Output_p);
-//                Serial.println(encoder->encoder->read());
-                pwm = Output_p + 1500;
-                // Serial.println(Output_p);
-                motor.writeMicroseconds(pwm);
+
+                  pwm = Output_p + 1500;
+                  if ((pwm-last_pwm) >  max_accel*(new_time_s - last_time_s)){
+//                    motor.writeMicroseconds(last_pwm + max_accel*(new_time_s - last_time_s));
+                      pwm = last_pwm + max_accel*(new_time_s - last_time_s);
+                  }
+                  else if ((last_pwm-pwm) >  max_accel*(new_time_s - last_time_s)){
+//                    motor.writeMicroseconds(last_pwm - max_accel*(new_time_s - last_time_s));
+                      pwm = last_pwm - max_accel*(new_time_s - last_time_s);
+                  }
+                  else{
+                    motor.writeMicroseconds(pwm);
+                  }
+                  motor.writeMicroseconds(pwm);
+                  last_pwm = pwm;
+                  last_time_s = millis();
+                  }
+                
 
             }
 
@@ -86,6 +99,7 @@ int Motor::run() {
 
                 last_position_s = encoder->encoder->read();
                 last_time_s = millis();
+           
             }
 
             else{

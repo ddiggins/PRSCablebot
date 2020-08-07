@@ -36,7 +36,7 @@ class Deployment:
         """ Create a deployment object and define
             possible commands to be executed """
 
-        self.socketio = SocketIO(message_queue='redis://')
+        self.socketio = SocketIO(message_queue='redis://', async_mode='threading')
         self.pipe = encoder_pipe
         self.serial = serial # pipe SERIAL_CHILD
         self.filename = file

@@ -8,7 +8,7 @@
 # from pymodbus.client.asynchronous.twisted import ModbusClientProtocol
 
 # Import Necessary Modules for Syncronous Communication
-from pymodbus.client.sync import ModbusSerialClient as ModbusClient
+from pymodbus.client.sync import ModbusTcpClient as ModbusClient
 
 # Import Propper Framer (RTU -- Page 36 of Manuel)
 from pymodbus.transaction import ModbusRtuFramer as ModbusFramer
@@ -16,8 +16,6 @@ from pymodbus.transaction import ModbusRtuFramer as ModbusFramer
 from pymodbus.payload import BinaryPayloadDecoder
 from pymodbus.constants import Endian
 from pymodbus.compat import iteritems
-from pymodbus import exceptions as modbusexceptions
-from pymodbus.other_message import *
 from collections import OrderedDict
 import struct
 import logging
@@ -31,39 +29,30 @@ logging.basicConfig(format=FORMAT)
 log = logging.getLogger()
 log.setLevel(logging.ERROR)
 
-UNIT = 0x01
+UNIT = 0x0
 
 class Modbus:
-    """ Object to handle modbus communication with an InSitu AquaTroll"""
 
     def __init__(self, log):
         """Creates Modbus object, defines client, log, and empty sensor list"""
-
-        self.client = ModbusClient(method='rtu', port="/dev/ttyUSB0", timeout=1, baudrate=19200)
-        self.check_error(self.client)
+        
+        self.client = ModbusClient('localhost', port=5020, framer=ModbusFramer)
         self.log = log
         self.sensors = []
-
+        
         # Creates appendixes
         self.AppendixB = csv_to_dictionary('AppendixB_paramNumsAndLocations.csv')
         self.AppendixC = csv_to_dictionary('AppendixC_unitIDs.csv')
-
-        # self.begin_comms()
-
+        
+        self.begin_comms()
+         
 
     def begin_comms(self):
         """Creates coonnection with the AquaTROLL and follow wakeup procedure.
         This involves sending a wake-up command and reading the sensors"""
-
+        
         self.client.connect()
-
-        #TODO: Test wakeup command
-        request = ReportSlaveIdRequest(unit=UNIT)
-        self.check_error(request)
-        id_test = self.client.execute(request)
-        self.check_error(id_test)
-
-
+        #TODO: Insert wakeup command
         self.sensors = self.init_sensor_discovery()
         return True
 
@@ -72,7 +61,7 @@ class Modbus:
         """Given the list of sensors (self.sensors) collect all sensor data
         and return it as a list of dictionaries"""
         data = []
-
+        
         for sensor in self.sensors:
             measurement = self.read_sensor(sensor['address'])
             data_point = {'sensor':"" + self.AppendixB[measurement['param_id']]['param'] + " " + self.AppendixB[measurement['param_id']]['unit_abbr'],
@@ -80,8 +69,8 @@ class Modbus:
                           'timestamp':datetime.now().isoformat()}
             data.append(data_point)
         return data
-
-
+            
+        
 
     def read_sensor(self, address):
         """Reads the registers from a sensor given the sensor address
@@ -90,7 +79,6 @@ class Modbus:
 
         data = {}
         rr = self.client.read_holding_registers(address, 7, unit=UNIT)
-        self.check_error(rr)
         decoder = BinaryPayloadDecoder.fromRegisters(rr.registers, byteorder=Endian.Big)
         decoded = OrderedDict([
             ('value', decoder.decode_32bit_float()),
@@ -99,11 +87,11 @@ class Modbus:
             ('param_id', decoder.decode_16bit_uint()),
             ('sentinel', decoder.decode_32bit_float())
         ])
-
+        
         for name, value in iteritems(decoded):
             data[name] = value
             # self.log.debug(str(name) + str(value))
-
+        
         return data
 
 
@@ -111,26 +99,25 @@ class Modbus:
         """Reads a register number and returns a list of bits"""
 
         rr = self.client.read_holding_registers(address, count, unit=UNIT)
-        self.check_error(rr)
         decoder = BinaryPayloadDecoder.fromRegisters(rr.registers, byteorder=Endian.Big)
         res = []
-
+        
         for i in range(count*2):
             ret = decoder.decode_bits()
             res.extend(ret)
         # self.log.debug(res)
-
+        
         return res
 
 
     def init_sensor_discovery(self):
-        """Reads a 14 register block that starts with 6984 that triggers the sonde to scan
-        its sensor ports and update its sensor map. There are a total of 219 parameter IDs.
+        """Reads a 14 register block that starts with 6984 that triggers the sonde to scan 
+        its sensor ports and update its sensor map. There are a total of 219 parameter IDs. 
         A total of 59 parameters exist.
 
         Returns: list of ids that have enabled sensors
-        """
-        res = self.read_register(6983, 14) # 6984-1 not sure if correct
+        """   
+        res = self.read_register(6983,14) # 6984-1 not sure if correct
         enabled = []
 
         enabled = [self.AppendixB[i] for i in range(224) if res[i]]
@@ -140,7 +127,7 @@ class Modbus:
 
 
     def get_registers_list(self):
-        """ Returns a list of register numbers of enabled sensors given
+        """ Returns a list of register numbers of enabled sensors given 
         a list of enabled sensor ids.
         """
         enabled_id_list = self.init_sensor_discovery()
@@ -151,13 +138,14 @@ class Modbus:
             enabled_registers.append(param_register)
 
         return enabled_registers
+    
 
-
-    def get_param_id_properties(self, param_id, prop_requested="all"):
-        """Returns properties of a sensor"""
+    def get_param_id_properties(self, param_id, prop_requested = "all"):
+        """Returns property 
+        """
         if prop_requested == "all":
             properties = self.AppendixB.get(param_id)
-
+            
         return properties
 
 
@@ -165,14 +153,8 @@ class Modbus:
         properties = self.AppendixC.get(unit_id)
         return properties
 
-    def check_error(self, res):
-        if isinstance(res, Exception):
-            raise res
-
-
 def start_modbus():
     modbus = Modbus(log)
-
 
 if __name__ == "__main__":
     modbus = Modbus(log)

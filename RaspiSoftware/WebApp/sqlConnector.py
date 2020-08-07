@@ -14,7 +14,7 @@ class SQLConnector:
 
         """ Set up database if not alrerady configured and assign structure """
 
-        self.socketio = SocketIO(message_queue='redis://')  # the socketio object
+        self.socketio = SocketIO(message_queue='redis://', async_mode='threading')  # the socketio object
         self.pipe = encoder_pipe
         # Connect to server and create cursor
         self.database = mysql.connector.connect(

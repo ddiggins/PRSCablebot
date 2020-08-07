@@ -35,6 +35,8 @@ class Motor: public GenericObject{
     int stop_pin = 7;
     int stopped = 0;
     int pwm = 0; // pwm frequency
+    float max_accel = 3;
+    int last_pwm = 0;
 
 
     // Variables for speed pid
