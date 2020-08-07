@@ -94,8 +94,9 @@ def run_deployment(file):
     """ Runs a deployment for a given file """
     print("running deployment")
     DEPLOYER = Process(target=deployment.start_deployment,\
-        args=(SERIAL_PARENT, ENCODER_CHILD, file))
+        args=(SERIAL_PARENT, ENCODER_CHILD, TROLL,  file))
     DEPLOYER.start()
+    DEPLOYER.join()
 
 @APP.route('/', methods=('GET', 'POST'))
 def index():
@@ -158,6 +159,9 @@ if __name__ == '__main__':
     # Queues for sql database connector
     RECORD_QUEUE = Queue()
     
+    # Start AquaTROLL
+    TROLL = Modbus(RECORD_QUEUE)
+
     # Starts camera
     CAMERA_PROCESS = Process(target=Camera.start_camera, args=((2592, 1944), 300, "Images", RECORD_QUEUE))
     CAMERA_PROCESS.start()
@@ -171,6 +175,8 @@ if __name__ == '__main__':
     COMMUNICATOR = Process(target=SerialCommunication.start_serial_communication,\
             args=(RECORD_QUEUE, SERIAL_CHILD))
     COMMUNICATOR.start()
+
+    
 
     # DEPLOYER = Deployment(SERIAL_PARENT, ENCODER_CHILD)
     # DEPLOYER_PROCESS = Process(target=DEPLOYER.test)

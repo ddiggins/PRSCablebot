@@ -32,10 +32,11 @@ class Deployment:
         """
 
     
-    def __init__(self, serial, encoder_pipe, file):
+    def __init__(self, serial, encoder_pipe, troll, file):
         """ Create a deployment object and define
             possible commands to be executed """
 
+        self.troll = troll
         self.socketio = SocketIO(message_queue='redis://', async_mode='threading')
         self.pipe = encoder_pipe
         self.serial = serial # pipe SERIAL_CHILD
@@ -135,6 +136,7 @@ class Deployment:
 
     def take_measurement(self):
         print("TAKING MEASUREMENT")
+        self.troll.collect_data()
 
     def reset_encoder_zero(self, position):
         self.zero_position = position

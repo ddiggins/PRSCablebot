@@ -1,28 +1,15 @@
 """ Class for communication with AqualTROLL using Modbus protocol
-    https://pymodbus.readthedocs.io/en/latest/index.html """
+    using minimal pymodbus"""
 
-# Import Necessary Modules for Asycronous Communication
-# from twisted.internet import serialport, reactor
-# from twisted.internet.protocol import ClientFactory
-# from pymodbus.factory import ClientDecoder
-# from pymodbus.client.asynchronous.twisted import ModbusClientProtocol
-
-# Import Necessary Modules for Syncronous Communication
-from pymodbus.client.sync import ModbusSerialClient as ModbusClient
-
-# Import Propper Framer (RTU -- Page 36 of Manuel)
-from pymodbus.transaction import ModbusRtuFramer as ModbusFramer
-
-from pymodbus.payload import BinaryPayloadDecoder
-from pymodbus.constants import Endian
-from pymodbus.compat import iteritems
-from pymodbus import exceptions as modbusexceptions
-from pymodbus.other_message import *
-from collections import OrderedDict
+import minimalmodbus
+import serial
+import time
 import struct
 import logging
 from datetime import datetime
 from table_extractor import csv_to_dictionary
+from multiprocessing import Queue, Process
+import numpy as np
 
 
 FORMAT = ('%(asctime)-15s %(threadName)-15s'
@@ -36,52 +23,49 @@ UNIT = 0x01
 class Modbus:
     """ Object to handle modbus communication with an InSitu AquaTroll"""
 
-    def __init__(self, log):
+    def __init__(self, record_queue):
         """Creates Modbus object, defines client, log, and empty sensor list"""
 
-        self.client = ModbusClient(method='rtu', port="/dev/ttyUSB0", timeout=1, baudrate=19200)
-        self.check_error(self.client)
-        self.log = log
+        self.instrument = minimalmodbus.Instrument('/dev/ttyUSB0', 1)  # port name, slave address (in decimal)
+        self.instrument.serial.parity = serial.PARITY_EVEN
+    
+        # self.log = log
         self.sensors = []
+        self.record_queue = record_queue
 
         # Creates appendixes
         self.AppendixB = csv_to_dictionary('AppendixB_paramNumsAndLocations.csv')
         self.AppendixC = csv_to_dictionary('AppendixC_unitIDs.csv')
 
-        # self.begin_comms()
+        self.instrument.serial.timeout = 2
+        self.wake_up()
+        self.init_sensor_discovery()
 
-
-    def begin_comms(self):
-        """Creates coonnection with the AquaTROLL and follow wakeup procedure.
+    def wake_up(self):
+        """Creates connection with the AquaTROLL and follow wakeup procedure.
         This involves sending a wake-up command and reading the sensors"""
+        try:
+            self.instrument.read_register(0) # Wake up sensor
+        except:
+            time.sleep(1)
 
-        self.client.connect()
-
-        #TODO: Test wakeup command
-        request = ReportSlaveIdRequest(unit=UNIT)
-        self.check_error(request)
-        id_test = self.client.execute(request)
-        self.check_error(id_test)
-
-
-        self.sensors = self.init_sensor_discovery()
         return True
-
 
     def collect_data(self):
         """Given the list of sensors (self.sensors) collect all sensor data
         and return it as a list of dictionaries"""
         data = []
-
+        self.wake_up()
         for sensor in self.sensors:
             measurement = self.read_sensor(sensor['address'])
-            data_point = {'sensor':"" + self.AppendixB[measurement['param_id']]['param'] + " " + self.AppendixB[measurement['param_id']]['unit_abbr'],
+            data_point = {'sensor':"" + sensor['param'] + " " + sensor['unit_abbr'],
                           'value':measurement['value'],
-                          'timestamp':datetime.now().isoformat()}
+                          'timestamp':datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}
             data.append(data_point)
+            self.record_queue.put((data_point['timestamp'],\
+                    str(data['sensor']), str(data['value'])))
+        
         return data
-
-
 
     def read_sensor(self, address):
         """Reads the registers from a sensor given the sensor address
@@ -89,38 +73,38 @@ class Modbus:
          Returns: Dictionary which encodes data into five values: value, qualityId, unitId, paramId, sentinel"""
 
         data = {}
-        rr = self.client.read_holding_registers(address, 7, unit=UNIT)
-        self.check_error(rr)
-        decoder = BinaryPayloadDecoder.fromRegisters(rr.registers, byteorder=Endian.Big)
-        decoded = OrderedDict([
-            ('value', decoder.decode_32bit_float()),
-            ('quality_id', decoder.decode_16bit_uint()),
-            ('unit_id', decoder.decode_16bit_float()),
-            ('param_id', decoder.decode_16bit_uint()),
-            ('sentinel', decoder.decode_32bit_float())
-        ])
+        request = self.instrument.read_registers(address, 7)
 
-        for name, value in iteritems(decoded):
-            data[name] = value
-            # self.log.debug(str(name) + str(value))
+
+        value = np.array([(request[0] << 16) + request[1]], dtype=np.uint32)
+        value = value.view(np.single).item(0)
+        quality_id = request[2]
+        unit_id = request[3]
+        param_id = request[4]
+        sentinel = np.array([(request[5] << 16) + request[6]], dtype=np.uint32)
+        sentinel = sentinel.view(np.single).item(0)
+
+        data = {'value':value, 'quality_id':quality_id, 'unit_id':unit_id, 'param_id':param_id, 'sentinel':sentinel}
+
+        #TODO: Decode information into data
+        #TODO: Throw error is data quality is low or corrupted
+        #TODO: Return measured value
+
+        # decoded = OrderedDict([
+        #     ('value', decoder.decode_32bit_float()),
+        #     ('quality_id', decoder.decode_16bit_uint()),
+        #     ('unit_id', decoder.decode_16bit_float()),
+        #     ('param_id', decoder.decode_16bit_uint()),
+        #     ('sentinel', decoder.decode_32bit_float())
+        # ])
 
         return data
 
 
     def read_register(self, address, count):
         """Reads a register number and returns a list of bits"""
-
-        rr = self.client.read_holding_registers(address, count, unit=UNIT)
-        self.check_error(rr)
-        decoder = BinaryPayloadDecoder.fromRegisters(rr.registers, byteorder=Endian.Big)
-        res = []
-
-        for i in range(count*2):
-            ret = decoder.decode_bits()
-            res.extend(ret)
-        # self.log.debug(res)
-
-        return res
+        request = self.instrument.read_registers(address, count)
+        return request
 
 
     def init_sensor_discovery(self):
@@ -130,13 +114,26 @@ class Modbus:
 
         Returns: list of ids that have enabled sensors
         """
-        res = self.read_register(6983, 14) # 6984-1 not sure if correct
-        enabled = []
+        res = self.instrument.read_registers(6983, 14)
+        result = 0
+        for i in range(13, 0):
+            result += res[i] << 16*i
 
-        enabled = [self.AppendixB[i] for i in range(224) if res[i]]
-        # self.log.debug(enabled)
+        sensors = []
+        for i in res:
+            for j in range(16):
+                sensors.append(self.get_bit(i, j))
+
+        enabled = [self.AppendixB[i+1] for i in range(224) if sensors[i]]
+
+        self.sensors = enabled
+        print(enabled)
 
         return enabled
+
+
+    def get_bit(self, num, n):
+        return (num >> n) & 1
 
 
     def get_registers_list(self):
@@ -157,7 +154,6 @@ class Modbus:
         """Returns properties of a sensor"""
         if prop_requested == "all":
             properties = self.AppendixB.get(param_id)
-
         return properties
 
 
@@ -170,13 +166,14 @@ class Modbus:
             raise res
 
 
-def start_modbus():
-    modbus = Modbus(log)
+def start_modbus(record_queue):
+
+    modbus = Modbus(recrd_queue, log)
 
 
 if __name__ == "__main__":
     modbus = Modbus(log)
-    data = modbus.read_sensor(5450)
+    # data = modbus.read_sensor(5450)
     modbus.collect_data()
     log.debug(data)
     log.debug(modbus.sensors)

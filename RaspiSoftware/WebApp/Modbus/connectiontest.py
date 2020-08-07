@@ -2,11 +2,12 @@
 import minimalmodbus
 import serial
 import time
+import numpy as np
 instrument = minimalmodbus.Instrument('/dev/ttyUSB0', 1)  # port name, slave address (in decimal)
 instrument.serial.parity = serial.PARITY_EVEN
 
 # write_file = open("registers.txt", 'w')
-instrument.serial.timeout  = 2         # seconds
+instrument.serial.timeout = 2         # seconds
 
 
 try:
@@ -19,8 +20,29 @@ except:
 print(instrument.read_registers(9006, 2))
 print(instrument.read_registers(9006, 2))
 print(instrument.read_registers(9018, 32))
-print(instrument.read_registers(5450, 7))
+request = instrument.read_registers(5450, 7)
 
+# value = np.array([(request[0] << 16) + request[1]], dtype=np.uint32)
+# value = value.view(np.single).item(0)
+# quality_id = request[2]
+# unit_id = request[3]
+# param_id = request[4]
+# sentinel = np.array([(request[5] << 16) + request[6]], dtype=np.uint32)
+# sentinel = sentinel.view(np.single).item(0)
+
+# data = {'value':value, 'quality_id':quality_id, 'unit_id':unit_id, 'param_id':param_id, 'sentinel':sentinel}
+# print(data)
+
+def get_bit(num, n):
+        return (num >> n) & 1
+
+res = instrument.read_registers(6983, 14)
+
+sensors = []
+for i in res:
+    for j in range(16):
+        sensors.append(get_bit(i, j))
+print(sensors)
 
 
 # from pymodbus.client.sync import ModbusSerialClient as ModbusClient
@@ -39,7 +61,7 @@ print(instrument.read_registers(5450, 7))
 # from datetime import datetime
 
 
-# client = ModbusClient(method='rtu', port="/dev/ttyUSB0", timeout=1, baudrate=19200)
+# client = ModbusClient(method='rtu', port="/dev/ttyUSB0", timeout=2, baudrate=19200)
 
 # client.connect()
 
