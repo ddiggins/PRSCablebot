@@ -1,9 +1,22 @@
 // Establish socketIO connection
 var socket = io.connect('http://' + document.domain + ':' + location.port);
 
+var clients = [];
+
+// socket.on('connect', function(client){
+//   console.log('Websocket connected on visualization!');
+//   // console.log(' %s sockets connected on visualiztion', io.engine.clientsCount);
+//   clients.push(client);
+
+//   client.on('disconnect', function() {
+//     console.log("disconnect: ", socket.id);
+//     clients.splice(clients.indexOf(client), 1);
+//   });
+// });
 socket.on('connect', function(){
   console.log('Websocket connected on visualization!');
-});
+});      
+
 
 // Google charts set up
 google.charts.load('current', {'packages':['table']});
@@ -28,14 +41,15 @@ socket.on('update progress bar', function(progressVal){
   console.log("updating progress bar");
   console.log("progressvaltype:" + typeof progressVal)
   console.log('progress val:' + progressVal)
-  var progressBar = document.getElementById("deploymentProgress");
-  progressBar.value = progressVal;
+  var progressBar = document.getElementById("deploymentProgress");  
+  document.getElementsByClassName('progress-bar').item(0).setAttribute('aria-valuenow',progressVal);
+  document.getElementsByClassName('progress-bar').item(0).setAttribute('style','width:'+Number(progressVal)+'%');
 });
 
 socket.on('update table', function(jsonData){
   /** Calls function that updates and redraws table.
    */
-  // console.log("recieved update table on visualization");
+  console.log("recieved update table on visualization");
   updateTable(jsonData); //update table with json from the database
   drawTable();
   data.sort([{column: 2}, {column: 1}]);
@@ -98,7 +112,22 @@ function updateTable(jsonData) {
 
 };
 
+var cssClassNames = {
+  // headerRow: 'someclass',
+  // tableRow: 'someclass',
+  // oddTableRow: 'someclass',
+  // selectedTableRow: 'someclass',
+  // hoverTableRow: 'someclass',
+  // headerCell: 'someclass',
+  // tableCell: 'someclass',
+  // rowNumberCell: 'someclass'
+  headerRow: 'thead', 
+}
+
 function drawTable(){
-  table.draw(data, {showRowNumber: true, width: '100%', height: '100%'});
+  table.draw(data, {cssClassNames, showRowNumber: true, width: '100%', height: '100%', allowHtml: true});
+  var className = 'google-visualization-table-table';
+  $('.'+className).removeClass(className);
 };
+
 

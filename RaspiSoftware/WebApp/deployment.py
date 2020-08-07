@@ -32,7 +32,7 @@ class Deployment:
         """
 
     
-    def __init__(self, serial, file, encoder_pipe):
+    def __init__(self, serial, encoder_pipe, file):
         """ Create a deployment object and define
             possible commands to be executed """
 
@@ -119,7 +119,7 @@ class Deployment:
                 # print("ENCODER?", data[0])
                 if data[0] == "encoder":
                     self.position = float(data[1])
-                    print('self.position: ', self.position)
+                    # print('self.position: ', self.position)
 
             # self.socketio.emit("testing deployment socket")
             # self.socketio.on_event('update table', self.update_position)
@@ -143,21 +143,28 @@ class Deployment:
         total_lines = len([x for x in self.document.readlines() if len(x) > 1])
         self.document.seek(0)
         current_line = 0
+        self.socketio.emit("testing deployment socket")
         for line in self.document:
             if len(line) > 1:  # Ignore blank lines with \n character
                 self.interpret_line(line)
                 current_line += 1
                 percentage = int((current_line * 100) / total_lines)
                 print("Progress in deployment: ", percentage)
-                self.pipe.send(percentage)
+                # self.pipe.send(percentage)
                 print("sent progress val through pipe")
+                self.socketio.emit("update progress bar", percentage)
+                print("emitted deployment progress in run_deployer")
 
+    def test(self):
+        print("inside test deployment funciton")
+        while 1:
+            self.socketio.emit("testing deployment socket")
+            self.socketio.sleep(2)
 
-def start_deployment(serial, file, pipe):
-    deployer = Deployment(serial, file, pipe)
+def start_deployment(serial, pipe, file):
+    deployer = Deployment(serial, pipe, file)
     deployer.run_deployer()
-
-
+    # deployer.test()
 
 if __name__ == "__main__":
 

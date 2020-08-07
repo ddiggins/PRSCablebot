@@ -2,104 +2,142 @@
 
 {% block content %}
 
-<!-- Motor Control Interface -->
-<div id="motorControl">
-    <!-- Create button -->
-    <h1>Motor Control</h1>
-    <input onclick="toggle_motor()" type="button" value="Enable Motor" id="motorStatus"></input>
+<div class="container-fluid bg-light" >
 
-
-    <!-- Create power slider -->
-    <div >
-        <input onclick="toggle_power()" type="button" value="Power Disabled" id="powerStatus"></input>
-        <p>Power Value: <span id="displayPower" onload="update_power_slider()"></span></p>
-        <input type="range" min="-1" max="1" value="0" step="0.1" class="slider" id="motorPower" oninput="update_power_slider()" onchange="send_motor_power()">
+    <div class="page-header" style="text-align:center;  padding: 30px;">  
+    <!-- background-color: #ABBAEA; -->
+        <h1>Cablebot Dashboard</h1>
     </div>
-
-    <!-- Create encoder position text box
-    <div class="encoder_pos_containter">
-        <input type="text" id="fname" name="fname"><br><br>
+    <!-- <div class="text-center" style="padding: 10px;">
+        <input onclick="toggle_motor()" class="btn btn-warning btn-lg" type="button" value="Enable Motor" id="motorStatus"></input>
+    </div> -->
+    <div class="row">   
+        <div class="col-sm-12 col-md-6 col-lg-6">
+            <div class="card text-center">
+                <h5 class="card-header">
+                    Robot Controls
+                </h5>
+                <div class="card-header">
+                    <ul class="nav nav-pills card-header-pills nav-justified" id="v-pills-tab" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="v-pills-power-tab" data-toggle="pill" href="#v-pills-power" role="tab" aria-controls="v-pills-power" aria-selected="true">Power</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="v-pills-speed-tab" data-toggle="pill" href="#v-pills-speed" role="tab" aria-controls="v-pills-speed" aria-selected="false">Speed</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="v-pills-position-tab" data-toggle="pill" href="#v-pills-position" role="tab" aria-controls="v-pills-position" aria-selected="false">Position</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="v-pills-manual-tab" data-toggle="pill" href="#v-pills-manual" role="tab" aria-controls="v-pills-manual" aria-selected="false">Manual</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class='card-body'>
+                    <div class="tab-content" id="v-pills-tabContent">
+                        <!-- Power Control -->
+                        <div class="tab-pane fade show active" id="v-pills-power" role="tabpanel" aria-labelledby="v-pills-power-tab" >
+                            <!-- <h5> Controlling by Motor Power </h5> -->
+                            <div style="padding-top: 10px; padding-right: 10px; padding-left: 10px;">
+                                <input type="range" min="-1" max="1" value="0" step="0.1" class="slider" id="motorPower" oninput="update_power_slider()" onchange="send_motor_power()" style="padding:10px;">
+                                <p>Motor Power Value: <span id="displayPower" onload="update_power_slider()"></span></p>                
+                            </div>
+                            <div class="text-center" style="padding: 10px;">
+                                <input onclick="toggle_motor()" class="btn btn-warning btn-lg" type="button" value="Enable Motor" id="motorStatus1"></input>
+                            </div>                        
+                        </div>
+                        <!-- Speed Control -->
+                        <div class="tab-pane fade" id="v-pills-speed" role="tabpanel" aria-labelledby="v-pills-speed-tab">
+                            <!-- <h5> Controlling by Encoder Speed </h5> -->
+                            <div style="padding-top: 10px; padding-right: 10px; padding-left: 10px;">
+                                <input type="range" min="-3" max="3" value="0" step="0.1" class="slider" id="encoderSpeed" oninput="update_speed_slider()" onchange="send_encoder_speed()">    
+                                <p>Encoder Speed Value: <span id="displaySpeed" onload="update_speed_slider()"></span></p>                    
+                            </div>
+                            <div class="text-center" style="padding: 10px;">
+                                <input onclick="toggle_motor()" class="btn btn-warning btn-lg" type="button" value="Enable Motor" id="motorStatus2"></input>
+                            </div>
+                        
+                        </div>
+                        <!-- Position Control -->
+                        <div class="tab-pane fade" id="v-pills-position" role="tabpanel" aria-labelledby="v-pills-position-tab">
+                            <!-- <h5> Controlling by Encoder Position </h5> -->
+                            <div class="input-group mb-3" style="padding-top: 10px; padding-right: 10px; padding-left: 10px;">
+                                <input type="text" class="form-control" id="encoderPosition" placeholder="Position (m)">
+                                <div class="input-group-append">
+                                    <button onclick="send_encoder_position()" type="button" class="btn btn-success mb-2">Submit</button>
+                                </div>                            
+                                <!-- <p>Encoder Position Value: <span id="displaySpeed" onload="update_speed_slider()"></span></p> -->
+                            </div>
+                            <div class="text-center" style="padding: 10px;">
+                                <input onclick="toggle_motor()" class="btn btn-warning btn-lg" type="button" value="Enable Motor" id="motorStatus3"></input>
+                            </div>                       
+                        </div>
+                        <!-- Send Manual Command -->
+                        <div class="tab-pane fade" id="v-pills-manual" role="tabpanel" aria-labelledby="v-pills-manual-tab">
+                            <div class="input-group mb-3" style="padding-top: 10px; padding-right: 10px; padding-left: 10px;">
+                                <input type="text" class="form-control" id="serialSend" placeholder='{"id" : "Sensor", "enabled" : "1"}'>
+                                <div class="input-group-append">
+                                    <button onclick="send_serial_command()" type="button" class="btn btn-success mb-2">Submit</button>
+                                </div>
+                            </div>
+                            <div class="text-center" style="padding: 10px;">
+                                <input onclick="toggle_motor()" class="btn btn-warning btn-lg" type="button" value="Enable Motor" id="motorStatus4"></input>
+                            </div>            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Deployment Routine -->
+        <div class="col-sm-12 col-md-6 col-lg-6">         
+            <div id='upload' class="card bg-secondary text-white h-100" text-white align='center' >
+                <h5 class="card-header">Upload Deployment Routine</h5>
+                <div class='card-body' >
+                    
+                    <form method="post" action="/" enctype="multipart/form-data" style="padding-top: 10px; padding-right: 10px; padding-left: 10px;">
+                        <input id="file" type="file" class="inputfile" name="file" autocomplete="off" accept="text/plain" required/>
+                        <input type="submit" id="uploadFileButton" class="btn btn-warning" value="Deploy Robot">
+                    </form>
+                    <br>
+                    <!-- Progress Bar -->
+                    <label for="deploymentProgress">Deployment progress:</label>
+                    <div id='deploymentProgress' class="progress" style="height: 30px;">
+                        <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-        <label for="fname">Position value:</label>
-        <input type="submit" value="Submit"> -->
-    <!-- Create encoder speed slider -->
+    <!-- <br> -->
+    <div class='row' id="incoming" style='padding:10px;'>
+        <div class='col'>
+            <div class="card" text-white align='center' style='padding:10px;'>
+                <h5 class="card-header">Status Monitor</h5>
+                <div class='card-body' >
+                    <table class = "table" id="sqlTable">
+                    </table>
+                </div>
+            </div>    
+        </div>
+    </div>
     
 
-    <div class="encoder_slider_container">
-        <input onclick="toggle_speed()" type="button" value="Speed Disabled" id="speedStatus"></input>
-        <p>Encoder Speed: <span id="displaySpeed" onload="update_speed_slider()"></span></p>
-        <input type="range" min="-3" max="3" value="0" step="0.1" class="slider" id="encoderSpeed" oninput="update_speed_slider()" onchange="send_encoder_speed()">
-    </div>
+    <!-- Feedback -->
+    <!-- <div id="outgoing">
+        <h5>Outgoing</h5>
+        {{ outgoing }}
+    </div> -->
 
-    <div >
-        <input onclick="toggle_position()" type="button" value="Position Enabled" id="positionStatus"></input>
-        <p>Position Location:</p>
-        <form method="POST" action="/">
-            {{ form_target.csrf_token }}
-            <div>{{ form_target.json.label }} {{ form_target.json(size=20) }}</div>
-            {{ form_target.submit }}
-        </form>
-    </div>
-    
-</div>
-
-<div id="upload" class="uploadbox" align="center">
     <br>
-    <p class="semibold" style="top:200px">Select a file to upload:</p>
-    <form method="post" action="/" enctype="multipart/form-data">
-        <br>
-        <dl>
-        <p>
-            <input id="file" type="file" class="inputfile" name="file" autocomplete="off" accept="text/plain" required/>
-        <label for="file" class="semibold">Browse Files</label>
-        </p>
-        </dl>
-        <p>
-            <input type="submit" class="button semibold blue1" value="Deploy Robot">
-        </p>
-        <br>
-    </form>
-    <!-- Progress Bar -->
-    <label for="deploymentProgress">Deployment progress:</label>
-    <progress id="deploymentProgress" value="0" max="100"> </progress>
+    
 
 </div>
 
-<!-- <div>
-    <label for="deployment">Choose a deployment file:</label>
-    <input type="file" id="deployment_file" name="deployment" accept="text/plain">
-    <input onclick="deploy_robot()" type="button" value="Deploy Robot" id="deplot_robot"></input>
-</div> -->
 
 <!-- Refresh page button -->
-<button onclick="window.location.href='/';">
+<!-- <button onclick="window.location.href='/';">
     Refresh
-</button>
-
-<!-- Serial Send (Line by Line) -->
-<div>
-    <h2>Serial Send</h2>
-    <form method="POST" action="/">
-        {{ form_long.csrf_token }}
-        <div>{{ form_long.json.label }} {{ form_long.json(size=20) }}</div>
-        {{ form_long.submit }}
-    </form>
-</div>
-
-<!-- Incoming/Outgoing Display -->
-<div id="outgoing">
-    <h2>Outgoing</h2>
-    {{ outgoing }}
-</div>
-<div>
-    <h2>Incoming</h2>
-    <!-- {{ incoming }} -->
-    <div  id="incoming"> </div>
-    <table class = "table" id="sqlTable">
-    </table>
-    
-
-</div>
+</button> -->
 
 
 <script type="text/javascript" src="{{url_for('static', filename='javascript/controls.js')}}"></script>

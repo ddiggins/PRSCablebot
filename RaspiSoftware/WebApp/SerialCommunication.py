@@ -84,7 +84,7 @@ class SerialCommunication:
     def run_communication(self):
         """ Runs a loop which reads and writes serial commands.
             Uses two queues to communicate with other processes """
-
+        print('running serial communication')
         while 1:
             # Sends command from the webapp to the serial line via pipe.
             if self.pipe.poll() is True:
