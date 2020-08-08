@@ -31,26 +31,33 @@ class SQLConnector:
             self.cursor.execute("SHOW TABLES")
             a = self.cursor.fetchall()
 
-            tables = [x[0] for x in a if x[0][3:].isnumeric()] # Fetch names of all numbered tables
+            tables = [x[0] for x in a if x[0][5:].isnumeric()] # Fetch names of all numbered tables
             # Sort tables in ascending order
             tables.sort(key=lambda x: int("".join([i for i in x if i.isdigit()])))
 
             if tables == []:
-                new_table_name = "run0"
+                new_record_table = "logs-0"
+                new_data_table = "data-0"
             else:
-                new_table_name = "run" + str(int(tables[-1][3:]) + 1) # Create new name one greater than existing
-            self.table_name = new_table_name
-
+                new_record_table = "logs-" + str(int(tables[-1][5:]) + 1) # Create new name one greater than existing
+                new_record_table = "data-" + str(int(tables[-1][5:]) + 1) # Create new name one greater than existing
+            self.record_table = new_record_table
+            self.data_table = new_data_table
         else:
-            self.table_name = table_name
+            self.record_table = "logs-" + table_name
+            self.data_table = "data-" + table_name
 
 
         # Clear table if specifiedTrueTrue
         if delete_existing:
-            self.cursor.execute("DROP TABLE IF EXISTS " + str(self.table_name))
+            self.cursor.execute("DROP TABLE IF EXISTS " + str(self.record_table))
+            self.cursor.execute("DROP TABLE IF EXISTS " + str(self.data_table))
 
         # Create table
-        self.cursor.execute("CREATE TABLE IF NOT EXISTS " + str(self.table_name) \
+        self.cursor.execute("CREATE TABLE IF NOT EXISTS " + str(self.record_table) \
+            + " (id INT AUTO_INCREMENT PRIMARY KEY, timestamp TIMESTAMP(3),\
+                 name VARCHAR(255), value VARCHAR(255))")
+        self.cursor.execute("CREATE TABLE IF NOT EXISTS " + str(self.data_table) \
             + " (id INT AUTO_INCREMENT PRIMARY KEY, timestamp TIMESTAMP(3),\
                  name VARCHAR(255), value VARCHAR(255))")
         
@@ -59,12 +66,14 @@ class SQLConnector:
         self.add_data('2000-01-01 00:00:01.000', "dummyName", "dummyValue")
 
 
-    def add_data(self, timestamp, name, value):
+    def add_data(self, timestamp, name, value, table):
         """ Add a row to the table
             name and value are limited to 255 char strings
             timestamp must be in format 'YYYY-MM-DD hh:mm:ss.dddd' """
 
         # Check for errors in inputs
+        # Verify correct table is passed in
+        assert table == self.data_table or table == self.record_table
         # Verify that inputs are strings
         assert isinstance(timestamp, str) and isinstance(name, str) and isinstance(value, str),\
              "Inputs must be of type string"
@@ -77,7 +86,7 @@ class SQLConnector:
         except ValueError:
             raise ValueError("Incorrect data format, should be 'Y-m-d H:M:S.f'")
 
-        sql = "INSERT INTO " + str(self.table_name) + " (timestamp, name, value) VALUES (%s,%s,%s)"
+        sql = "INSERT INTO " + str(table) + " (timestamp, name, value) VALUES (%s,%s,%s)"
         val = (timestamp, name, value)
         self.cursor.execute(sql, val)
 
@@ -86,33 +95,31 @@ class SQLConnector:
         return self.cursor.rowcount
 
 
-    def print_table(self):
+    def print_table(self, table):
         """ Prints the contents of the table (be careful with large datasets) """
-        self.cursor.execute("SELECT * FROM " + str(self.table_name))
+        assert table == self.data_table or table == self.record_table
+        self.cursor.execute("SELECT * FROM " + str(table))
         result = self.cursor.fetchall()
 
         for x in result:
             print(x)
 
 
-    def query_sensor(self, name, num_records, order_column, table_name="default"): # add in default to generate new tables
+    def query_sensor(self, name, num_records, order_column, table): # add in default to generate new tables
         """ Queries database for num_records recordings matching name. 
 
         To just select the n last rows regardless of name, set name = "*"
         """
         # "default" signifies that new tables are created each run, 
         # so query selects from the latest table
-        if table_name == "default":
-            if name == "*": 
-                sql = "SELECT * FROM " + str(self.table_name) + " ORDER BY id DESC"
-            else:
-                sql = "SELECT * FROM " + str(self.table_name) + " WHERE name = %s ORDER BY %s"
 
+        # Verify table name
+        assert table == self.data_table or table == self.record_table
+
+        if name == "*":
+            sql = "SELECT * FROM " + str(table) + " ORDER BY id DESC"
         else:
-            if name == "*":
-                sql = "SELECT * FROM " + str(table_name) + " ORDER BY id DESC"
-            else:
-                sql = "SELECT * FROM " + str(table_name) + " WHERE name = %s ORDER BY %s"
+            sql = "SELECT * FROM " + str(table) + " WHERE name = %s ORDER BY %s"
 
         if name == "*":
             # adr = (order_column)
@@ -141,46 +148,35 @@ class SQLConnector:
         return res[:num_records+1]
 
 
-    def run_database(self, record_queue):
+    def run_database(self, record_queue, data_queue):
         """ Check for incoming requests and process them """
         print ("running database")
         # Setting old record so the newly retrieved ones have something to compare to
-        old_record = self.query_sensor('*', 1, 'timestamp')
+        old_data = self.query_sensor('*', 1, 'timestamp',self.data_table)
+        old_record = self.query_sensor('*', 1, 'timestamp',self.record_table)
         test = True
         while 1:
-            # Workaround for progress bar, should be removed once we fix socketio in deployment.py
-            if self.pipe.poll() is True:
-            # if test is True:
-                progress_val = self.pipe.recv()
-                print("progress:", progress_val)
-                print("type:", type(progress_val))
-                self.socketio.emit("update progress bar", progress_val)
-                self.socketio.sleep(0.10)
-                # self.socketio.emit("update progress bar", 10)
-                # time.sleep(1)
-                # self.socketio.emit("update progress bar", 30)
-                # time.sleep(1)
-                # self.socketio.emit("update progress bar", 40)
-                # time.sleep(1)
-                # self.socketio.emit("update progress bar", 60)
-                # time.sleep(1)
-                # test = False
-
             # Write into database
             if not record_queue.empty():
                 # print("INSERTING RECORD")
                 data = record_queue.get()
-                self.add_data(data[0], data[1], data[2])
-
+                self.add_data(data[0], data[1], data[2], self.record_table)
+            time.sleep(0.01)
+            if not data_queue.empty():
+                # print("INSERTING RECORD")
+                data = record_queue.get()
+                self.add_data(data[0], data[1], data[2], self.data_table)
             time.sleep(0.01)
 
             # reading database for frontend table display
-            new_record = self.query_sensor('*', 1, 'timestamp')
+            new_data = self.query_sensor('*', 1, 'timestamp', self.data_table)
+            new_record = self.query_sensor('*', 1, 'timestamp', self.record_table)
             # print ("NEW RECORD: ", new_record)
             # print ("OLD RECORD: ", old_record)
             
             # Check that the record has updated.
             record_equality = (new_record == old_record)
+            data_equality = (new_data == old_data)
             # print ("RECORD EQUALITY: ", record_equality)
             if (not record_equality):
                 # Update old record to new record since we already compared them
@@ -191,9 +187,17 @@ class SQLConnector:
                 new_record = json.dumps(new_record, default = myconverter) # Converts into Json
                 # print("json new record: ", new_record)
                 self.socketio.emit("update table", new_record, broadcast=True)
-                self.pipe.send(new_record)
                 # print("emited update table")
-    
+            if (not data_equality):
+                # Update old record to new record since we already compared them
+                old_data = new_data
+                # Removes id of record, reorders so that the sensor name is first.
+                # (name, value, timestamp)
+                new_data = (new_data[2], new_data[3], new_data[1])
+                new_data = json.dumps(new_data, default = myconverter) # Converts into Json
+                # print("json new record: ", new_record)
+                self.socketio.emit("update table", new_data, broadcast=True)
+                # print("emited update table")
 def add_record(record, record_queue, lock):
     """ Add record to the database """
     lock.acquire()
