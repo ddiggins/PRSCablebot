@@ -10,12 +10,11 @@ class SQLConnector:
     """ A wrapper for mySQL to handle data dumps and requests """
 
     # def __init__(self, database_name, table_name, delete_existing, lock):
-    def __init__(self, database_name, table_name, delete_existing, encoder_pipe):
+    def __init__(self, database_name, table_name, delete_existing):
 
         """ Set up database if not alrerady configured and assign structure """
 
         self.socketio = SocketIO(message_queue='redis://', async_mode='threading')  # the socketio object
-        self.pipe = encoder_pipe
         # Connect to server and create cursor
         self.database = mysql.connector.connect(
             host="localhost",
@@ -63,8 +62,8 @@ class SQLConnector:
         
         # Create dummy placeholder line.
         
-        self.add_data('2000-01-01 00:00:01.000', "dummyName", "dummyValue")
-
+        self.add_data('2000-01-01 00:00:01.000', "dummyName", "dummyValue", self.record_table)
+        self.add_data('0000-00-00 00:00:00.000', "NAME", "VALUE", self.data_table)
 
     def add_data(self, timestamp, name, value, table):
         """ Add a row to the table
@@ -208,9 +207,9 @@ def myconverter(o):
     if isinstance(o, datetime.datetime):
         return o.__str__()
 
-def start_sqlConnector(record_queue, pipe):
-    connector = SQLConnector("sensorLogs", "default", False, pipe)
-    connector.run_database(record_queue)
+def start_sqlConnector(record_queue, data_queue):
+    connector = SQLConnector("sensorLogs", "default", False)
+    connector.run_database(record_queue,data_queue)
 
 if __name__ == "__main__":
     # REQUEST_QUEUE_GLOBAL = Queue()

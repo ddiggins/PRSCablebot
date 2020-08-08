@@ -158,9 +158,10 @@ if __name__ == '__main__':
     
     # Queues for sql database connector
     RECORD_QUEUE = Queue()
+    DATA_QUEUE = Queue()
     
     # Start AquaTROLL
-    TROLL = Modbus(RECORD_QUEUE)
+    TROLL = Modbus(DATA_QUEUE)
 
     # Starts camera
     CAMERA_PROCESS = Process(target=Camera.start_camera, args=((2592, 1944), 300, "Images", RECORD_QUEUE))
@@ -168,7 +169,7 @@ if __name__ == '__main__':
 
     # Starts sql database connector that handles writing and reading(broadcasts to socket)
     DATABASE_CONNECTOR = Process(target=sqlConnector.start_sqlConnector,\
-        args=(RECORD_QUEUE,ENCODER_PARENT))
+        args=(RECORD_QUEUE,DATA_QUEUE))
     DATABASE_CONNECTOR.start()
 
     # Starts thread that runs serial communication.
