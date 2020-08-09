@@ -197,6 +197,7 @@ class SQLConnector:
                 # print("json new record: ", new_record)
                 self.socketio.emit("update table", new_record, broadcast=True)
                 # print("emited update table")
+                
             if (not data_equality):
                 # Update old record to new record since we already compared them
                 old_data = new_data

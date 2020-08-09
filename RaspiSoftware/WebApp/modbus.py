@@ -58,7 +58,7 @@ class Modbus:
         self.wake_up()
         for sensor in self.sensors:
             measurement = self.read_sensor(sensor['address'])
-            data_point = {'sensor':"" + sensor['param'] + " " + sensor['unit_abbr'],
+            data_point = {'sensor':"" + sensor['param'] + " (" + sensor['unit_abbr'] + ")",
                           'value':measurement['value'],
                           'timestamp':datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}
             data.append(data_point)
@@ -181,7 +181,7 @@ class Modbus:
 
 def start_modbus(record_queue):
 
-    modbus = Modbus(recrd_queue, log)
+    modbus = Modbus(record_queue, log)
 
 
 if __name__ == "__main__":

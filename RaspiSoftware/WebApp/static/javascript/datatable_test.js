@@ -17,7 +17,6 @@ socket.on('update table', function(jsonData){
    */
   console.log("recieved update table on visualization");
   updateTable(jsonData); //update table with json from the database
-  // data.sort([{column: 2}, {column: 1}]);
 });
 
 function updateTable(jsonData) {
@@ -35,14 +34,12 @@ function updateTable(jsonData) {
   var timestamp = parsedData[2];
 
   //sort data according to column 1 in ascending order
-  // data.sort({column: 0});
   table.order( [[ 0, 'asc' ]] );
   // Gets exisiting ids of sensors in the tables
   var existing_ids = get_existing_ids(); // Type: Object array in ascending order
-  console.log("existing ids: " + existing_ids);
+//   console.log("existing ids: " + existing_ids);
   // console.log("existing ids type: " + typeof(existing_ids));
-// test
-  console.log('0,0 table cell' + table.cell(0,0).data())
+//   console.log('0,0 table cell' + table.cell(0,0).data());
 
 
   if (noEntries == true){
@@ -54,9 +51,9 @@ function updateTable(jsonData) {
   }
 
   if (existing_ids.includes(id)){
-    i = existing_ids.indexOf(id)
-    console.log("i: " + existing_ids[i]);
-    console.log('updating old row');
+    i = existing_ids.indexOf(id);
+    // console.log("i: " + existing_ids[i]);
+    // console.log('updating old row');
     table.row(i).data(parsedData).draw(false);
   }
   else {
@@ -68,22 +65,20 @@ function updateTable(jsonData) {
 
 // Update progress bar
 socket.on('update progress bar', function(progressVal){
-  console.log("updating progress bar");
-  console.log("progressvaltype:" + typeof progressVal)
-  console.log('progress val:' + progressVal)
-  var progressBar = document.getElementById("deploymentProgress");  
-  document.getElementsByClassName('progress-bar').item(0).setAttribute('aria-valuenow',progressVal);
-  document.getElementsByClassName('progress-bar').item(0).setAttribute('style','width:'+Number(progressVal)+'%');
+    console.log("updating progress bar");
+    // console.log("progressvaltype:" + typeof progressVal);
+    // console.log('progress val:' + progressVal);
+    var progressBar = document.getElementById("deploymentProgress");  
+    document.getElementsByClassName('progress-bar').item(0).setAttribute('aria-valuenow',progressVal);
+    document.getElementsByClassName('progress-bar').item(0).setAttribute('style','width:'+Number(progressVal)+'%');
 });
 
 function get_existing_ids(){
-  var existing_ids = []
-  var i;
-  for (i = 0; i < table.data().count(); i++) {
-    // table.cell(row, column)
-    cell_id = table.cell(i,0).data();
-    existing_ids.push(cell_id);
-
-  return existing_ids
-}
+    var existing_ids = [];
+    var i;
+    for (i = 0; i < table.data().count(); i++) {
+        cell_id = table.cell(i,0).data();
+        existing_ids.push(cell_id);
+    }
+    return existing_ids;
 }
