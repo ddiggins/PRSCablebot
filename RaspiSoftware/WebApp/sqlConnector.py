@@ -9,10 +9,19 @@ from flask_socketio import SocketIO, emit, send
 class SQLConnector:
     """ A wrapper for mySQL to handle data dumps and requests """
 
-    # def __init__(self, database_name, table_name, delete_existing, lock):
     def __init__(self, database_name, table_name, delete_existing):
 
-        """ Set up database if not alrerady configured and assign structure """
+        """ Set up database if not alrerady configured and assign structure 
+        
+        Delete all tables in the sensorLogs:
+        // "-s -r" suppressed the query from pretty printing
+        mysql -u databaseUser -p --password=user -s -r
+        // Generate list of commands that delete tables
+        SELECT concat('DROP TABLE IF EXISTS `', table_name, '`;') FROM information_schema.tables WHERE table_schema = 'sensorLogs';
+        // Copy the above commands
+        use sensorLogs
+        // Paste commands
+        """
 
         self.socketio = SocketIO(message_queue='redis://', async_mode='threading')  # the socketio object
         # Connect to server and create cursor
