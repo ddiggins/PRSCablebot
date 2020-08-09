@@ -30,22 +30,23 @@ class SQLConnector:
             self.cursor.execute("SHOW TABLES")
             a = self.cursor.fetchall()
 
-            tables = [x[0] for x in a if x[0][5:].isnumeric()] # Fetch names of all numbered tables
+            tables = [x[0] for x in a if x[0][4:].isnumeric()] # Fetch names of all numbered tables
             # Sort tables in ascending order
             tables.sort(key=lambda x: int("".join([i for i in x if i.isdigit()])))
 
             if tables == []:
-                new_record_table = "logs-0"
-                new_data_table = "data-0"
+                new_record_table = "logs0"
+                new_data_table = "data0"
             else:
-                new_record_table = "logs-" + str(int(tables[-1][5:]) + 1) # Create new name one greater than existing
-                new_record_table = "data-" + str(int(tables[-1][5:]) + 1) # Create new name one greater than existing
+                new_record_table = "logs" + str(int(tables[-1][4:]) + 1) # Create new name one greater than existing
+                new_data_table = "data" + str(int(tables[-1][4:]) + 1) # Create new name one greater than existing
             self.record_table = new_record_table
             self.data_table = new_data_table
         else:
             self.record_table = "logs-" + table_name
             self.data_table = "data-" + table_name
-
+        print(self.record_table)
+        print(self.data_table)
 
         # Clear table if specifiedTrueTrue
         if delete_existing:
@@ -54,16 +55,16 @@ class SQLConnector:
 
         # Create table
         self.cursor.execute("CREATE TABLE IF NOT EXISTS " + str(self.record_table) \
-            + " (id INT AUTO_INCREMENT PRIMARY KEY, timestamp TIMESTAMP(3),\
-                 name VARCHAR(255), value VARCHAR(255))")
+            + " (id INT AUTO_INCREMENT PRIMARY KEY, timestamp TIMESTAMP(3),"
+            + "name VARCHAR(255), value VARCHAR(255))")
         self.cursor.execute("CREATE TABLE IF NOT EXISTS " + str(self.data_table) \
-            + " (id INT AUTO_INCREMENT PRIMARY KEY, timestamp TIMESTAMP(3),\
-                 name VARCHAR(255), value VARCHAR(255))")
+            + " (id INT AUTO_INCREMENT PRIMARY KEY, timestamp TIMESTAMP(3),"
+            + "name VARCHAR(255), value VARCHAR(255))")
         
         # Create dummy placeholder line.
         
         self.add_data('2000-01-01 00:00:01.000', "dummyName", "dummyValue", self.record_table)
-        self.add_data('0000-00-00 00:00:00.000', "NAME", "VALUE", self.data_table)
+        self.add_data('2000-01-01 00:00:01.000', "NAME", "VALUE", self.data_table)
 
     def add_data(self, timestamp, name, value, table):
         """ Add a row to the table
@@ -160,12 +161,12 @@ class SQLConnector:
                 # print("INSERTING RECORD")
                 data = record_queue.get()
                 self.add_data(data[0], data[1], data[2], self.record_table)
-            time.sleep(0.01)
+            time.sleep(0.1)
             if not data_queue.empty():
                 # print("INSERTING RECORD")
-                data = record_queue.get()
+                data = data_queue.get()
                 self.add_data(data[0], data[1], data[2], self.data_table)
-            time.sleep(0.01)
+            time.sleep(0.1)
 
             # reading database for frontend table display
             new_data = self.query_sensor('*', 1, 'timestamp', self.data_table)
@@ -197,6 +198,7 @@ class SQLConnector:
                 # print("json new record: ", new_record)
                 self.socketio.emit("update table", new_data, broadcast=True)
                 # print("emited update table")
+
 def add_record(record, record_queue, lock):
     """ Add record to the database """
     lock.acquire()

@@ -7,9 +7,9 @@ import time
 import struct
 import logging
 from datetime import datetime
-from table_extractor import csv_to_dictionary
 from multiprocessing import Queue, Process
 import numpy as np
+import pandas as pd
 
 
 FORMAT = ('%(asctime)-15s %(threadName)-15s'
@@ -34,8 +34,8 @@ class Modbus:
         self.record_queue = record_queue
 
         # Creates appendixes
-        self.AppendixB = csv_to_dictionary('AppendixB_paramNumsAndLocations.csv')
-        self.AppendixC = csv_to_dictionary('AppendixC_unitIDs.csv')
+        self.AppendixB = self.csv_to_dictionary('AppendixB_paramNumsAndLocations.csv')
+        self.AppendixC = self.csv_to_dictionary('AppendixC_unitIDs.csv')
 
         self.instrument.serial.timeout = 2
         self.wake_up()
@@ -63,7 +63,7 @@ class Modbus:
                           'timestamp':datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}
             data.append(data_point)
             self.record_queue.put((data_point['timestamp'],\
-                    str(data['sensor']), str(data['value'])))
+                    str(data_point['sensor']), str(data_point['value'])))
         
         return data
 
@@ -164,6 +164,19 @@ class Modbus:
     def check_error(self, res):
         if isinstance(res, Exception):
             raise res
+    
+    def csv_to_dictionary(self, csvFile):
+        '''
+        Takes a csv file and converts it into a dictionary with the following format:
+        {1: {'Parameter Name': 'Temperature', 'Holding Register Number': 5451, 'Holding Register Address': 5450, 'Default Unit ID': 1, 'Default Unit Abbreviation': '°C'}, 
+        2: {'Parameter Name': 'Pressure', 'Holding Register Number': 5458, 'Holding Register Address': 5457, 'Default Unit ID': 17, 'Default Unit Abbreviation': 'PSI'},
+        ...
+        }'''
+        df = pd.read_csv(csvFile)
+        df = df.set_index('ID')
+        data_dict = df.to_dict('index')
+
+        return data_dict
 
 
 def start_modbus(record_queue):

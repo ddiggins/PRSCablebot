@@ -163,8 +163,8 @@ class Deployment:
             self.socketio.emit("testing deployment socket")
             self.socketio.sleep(2)
 
-def start_deployment(serial, pipe, file):
-    deployer = Deployment(serial, pipe, file)
+def start_deployment(serial, pipe, troll, file):
+    deployer = Deployment(serial, pipe, troll, file)
     deployer.run_deployer()
     # deployer.test()
 

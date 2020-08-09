@@ -15,7 +15,7 @@ import sqlConnector
 import camera as Camera
 import urllib.request
 from werkzeug.utils import secure_filename
-from Modbus import Modbus
+from modbus import Modbus
 # from deployment import Deployment
 import deployment
 # Initializes flask app

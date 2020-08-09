@@ -35,7 +35,7 @@ class Camera:
         self.camera.capture(image_name, quality=10)
         print("IMAGE CAPTURED")
         self.camera.stop_preview()
-        # print("PREVIEW ENDED")
+        print("PREVIEW ENDED")
         return timestamp, image_name
 
     def run_camera(self):
@@ -47,7 +47,7 @@ class Camera:
                 print(last_time)
                 timestamp, image_name = self.take_image()
                 self.record_queue.put((timestamp, "Camera", image_name))
-                # print("ADDED TO QUEUE")
+                print("ADDED TO QUEUE")
             time.sleep(0.01)
 
 def start_camera(resolution, interval, image_folder_path, record_queue):
