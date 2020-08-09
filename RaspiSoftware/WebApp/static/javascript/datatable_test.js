@@ -1,79 +1,76 @@
 // Establish socketIO connection
 var socket = io.connect('http://' + document.domain + ':' + location.port);
-
 socket.on('connect', function(){
-  console.log('Websocket connected on table_test!');
+    console.log('Websocket connected on table_test!');
 });      
 
-var noEntries = true;
-var table;
+// Set to false once the first row has been made in a table
+var logsNoEntries = true;
+var dataNoEntries = true
+
 // Datatables
+var robotLogsTable;
+var aquatrollDataTable;
+
 $(document).ready(function() {
-  table = $('#sqlTable').DataTable();
+    robotLogsTable = $('#robotLogsTable').DataTable();
+    aquatrollDataTable = $('#aquatrollDataTable').DataTable();
 } );
 
-socket.on('update table', function(jsonData){
-  /** Calls function that updates and redraws table.
-   */
-  console.log("recieved update table on visualization");
-  updateTable(jsonData); //update table with json from the database
+socket.on('update robot logs table', function(jsonData){
+    console.log("recieved update ROBOT table");
+    logsNoEntries = updateTable(jsonData, robotLogsTable, logsNoEntries); //update table with json from the database
 });
 
-function updateTable(jsonData) {
-  /** Updates table with new values. If a sensor doesn't exist, create new row and populate it.
-   *   var jsonData = ["testName", "testValue", "2000-01-01 00:00:01"]
-  */
-  console.log("RUNNING UPDATE TABLE");
-  // console.log("jsonData: " + jsonData);
-  var parsedData = JSON.parse(jsonData);
-  // console.log(parsedData);
-  // Id of the sensor
-  var id = parsedData[0];
-  // console.log("id: " + id);
-  var value = parsedData[1];
-  var timestamp = parsedData[2];
+socket.on('update Aqua TROLL data table', function(jsonData){
+    console.log("recieved update DATA table");
+    dataNoEntries = updateTable(jsonData, aquatrollDataTable, dataNoEntries);
+  });
 
-  //sort data according to column 1 in ascending order
-  table.order( [[ 0, 'asc' ]] );
-  // Gets exisiting ids of sensors in the tables
-  var existing_ids = get_existing_ids(); // Type: Object array in ascending order
-//   console.log("existing ids: " + existing_ids);
-  // console.log("existing ids type: " + typeof(existing_ids));
-//   console.log('0,0 table cell' + table.cell(0,0).data());
+function updateTable(jsonData, table, noEntries) {
+    /*
+    Updates table with new values. If a sensor doesn't exist, create new row and populate it.
+    var jsonData = ["testName", "testValue", "2000-01-01 00:00:01"]
+    Parameters:
+        jsonData - data to be put into the table
+        table - table to be updated
+        noEntries - boolean checking whether there are any existing rows in the table
+    Returns:
+        noEntries - if noEntries was set to false locally, returns boolean so that the global variable
+                    can be updated.
+    */ 
+    console.log("RUNNING UPDATE TABLE");
+    var parsedData = JSON.parse(jsonData);
+    var id = parsedData[0];
+    // Sort data according to the first column in ascending order
+    table.order( [[ 0, 'asc' ]] );
+    // Gets exisiting ids of sensors in the tables
+    var existing_ids = get_existing_ids(table); // Type: List of ids in table already
+    // console.log("existing ids: " + existing_ids);
 
+    if (noEntries == true){
+        // If the table is empty, create the first row
+        table.row.add(parsedData).draw(false);
+        console.log("creating new row from noEntries")
+        noEntries = false;
+        existing_ids = get_existing_ids(table);// Update existing id to new value
+    }
 
-  if (noEntries == true){
-    // data.addRow(parsedData);
-    table.row.add(parsedData).draw(false);
-    console.log("creating new row from noEntries")
-    noEntries = false;
-    existing_ids = get_existing_ids();// Update existing id to new value
-  }
-
-  if (existing_ids.includes(id)){
-    i = existing_ids.indexOf(id);
-    // console.log("i: " + existing_ids[i]);
-    // console.log('updating old row');
-    table.row(i).data(parsedData).draw(false);
-  }
-  else {
-    console.log('creating new row');
-    // Create a new row and populate
-    table.row.add(parsedData).draw(false);
-  }
+    if (existing_ids.includes(id)){
+        // If the table already has a row of that sensor, update data and redrew
+        // console.log('updating old row');
+        i = existing_ids.indexOf(id);
+        table.row(i).data(parsedData).draw(false);
+    }
+    else {
+        // Create a new row
+        // console.log('creating new row');
+        table.row.add(parsedData).draw(false);
+    }
+    return noEntries
 };
 
-// Update progress bar
-socket.on('update progress bar', function(progressVal){
-    console.log("updating progress bar");
-    // console.log("progressvaltype:" + typeof progressVal);
-    // console.log('progress val:' + progressVal);
-    var progressBar = document.getElementById("deploymentProgress");  
-    document.getElementsByClassName('progress-bar').item(0).setAttribute('aria-valuenow',progressVal);
-    document.getElementsByClassName('progress-bar').item(0).setAttribute('style','width:'+Number(progressVal)+'%');
-});
-
-function get_existing_ids(){
+function get_existing_ids(table){
     var existing_ids = [];
     var i;
     for (i = 0; i < table.data().count(); i++) {
@@ -82,3 +79,12 @@ function get_existing_ids(){
     }
     return existing_ids;
 }
+
+// Update progress bar
+socket.on('update progress bar', function(progressVal){
+    console.log("updating progress bar");
+    // console.log('progress val:' + progressVal);
+    var progressBar = document.getElementById("deploymentProgress");  
+    document.getElementsByClassName('progress-bar').item(0).setAttribute('aria-valuenow',progressVal);
+    document.getElementsByClassName('progress-bar').item(0).setAttribute('style','width:'+Number(progressVal)+'%');
+});

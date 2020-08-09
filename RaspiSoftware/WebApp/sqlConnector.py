@@ -195,9 +195,8 @@ class SQLConnector:
                 new_record = (new_record[2], new_record[3], new_record[1])
                 new_record = json.dumps(new_record, default = myconverter) # Converts into Json
                 # print("json new record: ", new_record)
-                self.socketio.emit("update table", new_record, broadcast=True)
-                # print("emited update table")
-                
+                self.socketio.emit("update robot logs table", new_record, broadcast=True)
+
             if (not data_equality):
                 # Update old record to new record since we already compared them
                 old_data = new_data
@@ -206,8 +205,7 @@ class SQLConnector:
                 new_data = (new_data[2], new_data[3], new_data[1])
                 new_data = json.dumps(new_data, default = myconverter) # Converts into Json
                 # print("json new record: ", new_record)
-                self.socketio.emit("update table", new_data, broadcast=True)
-                # print("emited update table")
+                self.socketio.emit("update Aqua TROLL data table", new_data, broadcast=True)
 
 def add_record(record, record_queue, lock):
     """ Add record to the database """
