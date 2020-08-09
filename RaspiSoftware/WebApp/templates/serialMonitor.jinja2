@@ -114,12 +114,32 @@
             <div class="card" text-white align='center' style='padding:10px;'>
                 <h5 class="card-header">Status Monitor</h5>
                 <div class='card-body' >
+                    <table class = "table" id="sqlTable" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>Sensor Nanme</th>
+                                <th>Value</th>
+                                <th>Time Stamp</th>
+                            </tr>
+                        </thead>
+                    </table>
+                    
+                </div>
+            </div>    
+        </div>
+    </div>
+
+    <!-- <div class='row' id="incoming" style='padding:10px;'>
+        <div class='col'>
+            <div class="card" text-white align='center' style='padding:10px;'>
+                <h5 class="card-header">Status Monitor</h5>
+                <div class='card-body' >
                     <table class = "table" id="sqlTable">
                     </table>
                 </div>
             </div>    
         </div>
-    </div>
+    </div> -->
     
 
     <!-- Feedback -->
@@ -143,7 +163,13 @@
 <script type="text/javascript" src="{{url_for('static', filename='javascript/jquery.min.js')}}"></script>
 <script type="text/javascript" src="{{url_for('static', filename='javascript/bootstrap.bundle.min.js')}}"></script>
 <script type="text/javascript" src="{{url_for('static', filename='javascript/socket.io.js')}}"></script>
+
+<!-- <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/datatables.css')}}"/> -->
+<script type="text/javascript" src="{{url_for('static', filename='javascript/datatables.js')}}"></script>
+
+
 <script type="text/javascript" src="{{url_for('static', filename='javascript/controls.js')}}"></script>
-<script type="text/javascript" src="{{url_for('static', filename='javascript/visualization.js')}}"></script>
+<!-- <script type="text/javascript" src="{{url_for('static', filename='javascript/visualization.js')}}"></script> -->
+<script type="text/javascript" src="{{url_for('static', filename='javascript/datatable_test.js')}}"></script>
 
 {% endblock %}
