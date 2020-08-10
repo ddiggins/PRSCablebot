@@ -46,6 +46,7 @@ def send_serial_command(data):
 @SOCKETIO.on('enable motor')
 def enable_motor():
     """ Enables motor by sending json value """
+    print('Enabling motor')
     start_motor = '{"id" : "Motor1", "enabled" : "1"}'
     SERIAL_PARENT.send(start_motor)
     OUTGOING.append(start_motor)
@@ -53,6 +54,7 @@ def enable_motor():
 @SOCKETIO.on('disable motor')
 def disable_motor():
     """Disables motor"""
+    print('Disabling motor')
     stop_motor = '{"id" : "Motor1", "enabled" : "0"}'
     SERIAL_PARENT.send(stop_motor)
     OUTGOING.append(stop_motor)
@@ -60,6 +62,7 @@ def disable_motor():
 @SOCKETIO.on('new motor power')
 def update_motor_speed(data):
     """Changes the motor speed to value dictated by the slider."""
+    print('sending new motor power')
     slider_power = json.dumps({"id" : "Motor1", "speed": data})
     SERIAL_PARENT.send(slider_power)
     OUTGOING.append(slider_power)
@@ -68,12 +71,14 @@ def update_motor_speed(data):
 def update_motor_target(data):
     """Changes the motor target to value dictated by the 
     encoder speed slider or position input field."""
+    print('sending new motor target')
     slider_target = json.dumps({"id" : "Motor1", "target": data})
     SERIAL_PARENT.send(slider_target)
     OUTGOING.append(slider_target)
 
 @SOCKETIO.on('new motor mode')
 def update_motor_mode(data):
+    print('sending new motor mode')
     """Changes the motor speed to value dictated by the slider."""
     mode = json.dumps({"id" : "Motor1", "mode": data})
     SERIAL_PARENT.send(mode)
