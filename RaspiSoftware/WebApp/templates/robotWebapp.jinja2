@@ -3,15 +3,11 @@
 {% block content %}
 
 <div class="container-fluid bg-light" >
-
     <div class="page-header" style="text-align:center;  padding: 30px;">  
-    <!-- background-color: #ABBAEA; -->
         <h1>Cablebot Dashboard</h1>
     </div>
-    <!-- <div class="text-center" style="padding: 10px;">
-        <input onclick="toggle_motor()" class="btn btn-warning btn-lg" type="button" value="Enable Motor" id="motorStatus"></input>
-    </div> -->
-    <div class="row">   
+    <div class="row" style='padding:10px;'>  
+        <!-- Robot Controls -->
         <div class="col-sm-12 col-md-6 col-lg-6">
             <div class="card text-center">
                 <h5 class="card-header">
@@ -56,7 +52,6 @@
                             <div class="text-center" style="padding: 10px;">
                                 <input onclick="toggle_motor()" class="btn btn-warning btn-lg" type="button" value="Enable Motor" id="motorStatus2"></input>
                             </div>
-                        
                         </div>
                         <!-- Position Control -->
                         <div class="tab-pane fade" id="v-pills-position" role="tabpanel" aria-labelledby="v-pills-position-tab">
@@ -90,13 +85,13 @@
         </div>
         <!-- Deployment Routine -->
         <div class="col-sm-12 col-md-6 col-lg-6">         
-            <div id='upload' class="card bg-secondary text-white h-100" text-white align='center' >
+            <div id='upload' class="card bg-secondary text-white h-100" text-white align='center'>
                 <h5 class="card-header">Upload Deployment Routine</h5>
                 <div class='card-body' >
-                    
                     <form method="post" action="/" enctype="multipart/form-data" style="padding-top: 10px; padding-right: 10px; padding-left: 10px;">
                         <input id="file" type="file" class="inputfile" name="file" autocomplete="off" accept="text/plain" required/>
-                        <input type="submit" id="uploadFileButton" class="btn btn-warning" value="Deploy Robot">
+                        <br>
+                        <input type="submit" id="uploadFileButton" class="btn btn-warning btn-lg" value="Deploy Robot">
                     </form>
                     <br>
                     <!-- Progress Bar -->
@@ -108,10 +103,11 @@
             </div>
         </div>
     </div>
-    <!-- <br> -->
+    <!-- Tables that display live data from the sql database -->
     <div class='row' id="incoming" style='padding:10px;'>
+        <!-- Robot health log table -->
         <div class='col'>
-            <div class="card" text-white align='center' style='padding:10px;'>
+            <div class="card" text-white align='center'>
                 <h5 class="card-header">Status Monitor</h5>
                 <div class='card-body' >
                     <table class = "table" id="robotLogsTable" style="width:100%">
@@ -127,8 +123,9 @@
                 </div>
             </div>    
         </div>
+        <!-- Aqua TROLL data table -->
         <div class='col'>
-            <div class="card" text-white align='center' style='padding:10px;'>
+            <div class="card" text-white align='center'>
                 <h5 class="card-header">Aqua TROLL Data</h5>
                 <div class='card-body' >
                     <table class = "table" id="aquatrollDataTable" style="width:100%">
@@ -140,37 +137,20 @@
                             </tr>
                         </thead>
                     </table>
-                    
                 </div>
             </div>
         </div>
     </div>    
 
-    <!-- Feedback -->
+    <!-- Uncomment to show commands the webapp is sending to the Teensy -->
     <!-- <div id="outgoing">
         <h5>Outgoing</h5>
         {{ outgoing }}
-    </div> -->
-
-    <br>
-    
-
+    </div> -->    
 </div>
 
-
-<!-- Refresh page button -->
-<!-- <button onclick="window.location.href='/';">
-    Refresh
-</button> -->
-
-<!-- <script type="text/javascript" src="{{url_for('static', filename='javascript/jquery.min.js')}}"></script>
-<script type="text/javascript" src="{{url_for('static', filename='javascript/bootstrap.bundle.min.js')}}"></script>
-<script type="text/javascript" src="{{url_for('static', filename='javascript/socket.io.js')}}"></script>
-<script type="text/javascript" src="{{url_for('static', filename='javascript/datatables.js')}}"></script> -->
-
-
+<!-- Need to import the javascript files after the html has loaded -->
 <script type="text/javascript" src="{{url_for('static', filename='javascript/controls.js')}}"></script>
-<!-- <script type="text/javascript" src="{{url_for('static', filename='javascript/visualization.js')}}"></script> -->
-<script type="text/javascript" src="{{url_for('static', filename='javascript/datatable_test.js')}}"></script>
+<script type="text/javascript" src="{{url_for('static', filename='javascript/visualization.js')}}"></script>
 
 {% endblock %}

@@ -4,7 +4,6 @@ from gevent import monkey
 monkey.patch_all(thread=False)
 import os
 from multiprocessing import Queue, Process, Pipe
-from threading import Lock
 from flask import Flask, render_template, url_for, redirect, flash, request, jsonify
 from flask_socketio import SocketIO, emit, send
 from forms import SerialSendForm
@@ -16,10 +15,9 @@ import camera as Camera
 import urllib.request
 from werkzeug.utils import secure_filename
 from modbus import Modbus
-# from deployment import Deployment
 import deployment
-# Initializes flask app
 
+# Initializes flask app
 APP = Flask(__name__)
 
 # Suppresses terminal outputs of GET and POST. Only allows error messages.
@@ -36,14 +34,6 @@ SOCKETIO = SocketIO(APP, message_queue='redis://')
 # Lists to display incoming and outgoing commands
 INCOMING = []
 OUTGOING = []
-
-# A mutex to protect the incoming queue
-LOCK = Lock()
-
-ALLOWED_EXTENSIONS = set(['txt'])
-
-def allowed_file(filename):
-	return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @SOCKETIO.on('send serial command')
 def send_serial_command(data):
@@ -98,47 +88,36 @@ def run_deployment(file):
     DEPLOYER.start()
     DEPLOYER.join()
 
+# File filter for deployment file
+ALLOWED_EXTENSIONS = set(['txt'])
+def allowed_file(filename):
+	return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 @APP.route('/', methods=('GET', 'POST'))
 def index():
     """ Creates webpage. Runs every time the page is refreshed """
-    form_long = SerialSendForm()
-    form_target = SerialSendForm()
     print("web page loading")
 
-    # Submit motor command through form
-    if form_long.validate_on_submit():
-        # Send value to outgoing queue
-        json_message = form_long.json.data
-        SERIAL_PARENT.send(json_message)
-        OUTGOING.append(json_message)
-
-    # Submit motor command through form
-    if form_target.validate_on_submit():
-        # Send value to outgoing queue
-        json_message = form_target.json.data
-        str_message = json.dumps({"id" : "Motor1", "target": json_message})
-        SERIAL_PARENT.send(str_message)
-        OUTGOING.append(str_message)
-        
-    # Run deployment
+    # Upload deployment file and run deployment routine
     if request.method == 'POST':
-        # check if the post request has the file part
+        # Check if the post request has the file part
         if 'file' not in request.files:
             print('No file part')
             return redirect(request.url)
         file = request.files['file']
+        # 
         if file.filename == '':
             print('No file selected for uploading')
             return redirect(request.url)
+        # If proper file uploaded, save file to RasPi, emit event that triggers the run deployment process 
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             file.save(os.path.join('uploads', filename))
-            print(filename)
             SOCKETIO.emit('run deployment', filename, broadcast=False)
             file_location = 'uploads/' + str(filename)
             run_deployment(file_location)
             print('File successfully uploaded')
-            # returns 
+            # Returns empty url to prevent page reload upon submission
             return '', 204
 
     template_data = {
@@ -146,14 +125,14 @@ def index():
         'outgoing':OUTGOING
     }
 
-    return render_template('serialMonitor.jinja2', **template_data, form_long=form_long, form_target=form_target)
+    return render_template('robotWebapp.jinja2', **template_data)
 
 if __name__ == '__main__':
 
     # Pipes to Webapp
     SERIAL_CHILD, SERIAL_PARENT = Pipe()
 
-    # Pipes for Encoder
+    # Pipes for encoder
     ENCODER_CHILD, ENCODER_PARENT = Pipe()
     
     # Queues for sql database connector
@@ -176,12 +155,6 @@ if __name__ == '__main__':
     COMMUNICATOR = Process(target=SerialCommunication.start_serial_communication,\
             args=(RECORD_QUEUE, SERIAL_CHILD))
     COMMUNICATOR.start()
-
-    
-
-    # DEPLOYER = Deployment(SERIAL_PARENT, ENCODER_CHILD)
-    # DEPLOYER_PROCESS = Process(target=DEPLOYER.test)
-    # DEPLOYER_PROCESS.start()
 
     # Runs app wrapped in Socket.io. "debug" and "use_reloader" need to be false
     # or else Flask creates a child process and re-runs main.

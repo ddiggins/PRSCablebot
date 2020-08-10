@@ -11,7 +11,6 @@ from multiprocessing import Queue, Process
 import numpy as np
 import pandas as pd
 
-
 FORMAT = ('%(asctime)-15s %(threadName)-15s'
     ' %(levelname)-8s %(module)-15s:%(lineno)-8s %(message)s')
 logging.basicConfig(format=FORMAT)
