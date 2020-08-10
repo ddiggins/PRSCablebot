@@ -105,7 +105,8 @@ class Deployment:
         steps = position * 2887 # Convert m to steps
         self.target = steps
         print(self.target)
-        self.serial.send('{"id":"Motor1", "mode":"1","target":"%s"}' % steps)
+        self.serial.send('{"id":"Motor1", "mode":"1"}')
+        self.serial.send('{"id":"Motor1", "target":"%s"}' % steps)
         print("sent serial command")
         self.socketio.emit("testing deployment socket")
 
@@ -156,12 +157,6 @@ class Deployment:
                 print("sent progress val through pipe")
                 self.socketio.emit("update progress bar", percentage)
                 print("emitted deployment progress in run_deployer")
-
-    def test(self):
-        print("inside test deployment funciton")
-        while 1:
-            self.socketio.emit("testing deployment socket")
-            self.socketio.sleep(2)
 
 def start_deployment(serial, pipe, troll, file):
     deployer = Deployment(serial, pipe, troll, file)
