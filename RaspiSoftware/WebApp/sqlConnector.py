@@ -9,7 +9,7 @@ from flask_socketio import SocketIO, emit, send
 class SQLConnector:
     """ A wrapper for mySQL to handle data dumps and requests """
 
-    def __init__(self, database_name, table_name, delete_existing):
+    def __init__(self, database_name, table_name, delete_existing, pipe):
 
         """ Set up database if not alrerady configured and assign structure 
         
@@ -32,6 +32,7 @@ class SQLConnector:
             database=database_name
             )
         self.cursor = self.database.cursor(buffered=True)
+        self.encoder_pipe = pipe
         
 
         if table_name == "default": # Default assigns a new unique number
@@ -196,6 +197,8 @@ class SQLConnector:
                 new_record = json.dumps(new_record, default = myconverter) # Converts into Json
                 # print("json new record: ", new_record)
                 self.socketio.emit("update robot logs table", new_record, broadcast=True)
+                self.encoder_pipe.send(new_record)
+                print("sent new encoder value through pipe")
 
             if (not data_equality):
                 # Update old record to new record since we already compared them
@@ -206,6 +209,7 @@ class SQLConnector:
                 new_data = json.dumps(new_data, default = myconverter) # Converts into Json
                 # print("json new record: ", new_record)
                 self.socketio.emit("update Aqua TROLL data table", new_data, broadcast=True)
+                
 
 def add_record(record, record_queue, lock):
     """ Add record to the database """
@@ -217,8 +221,8 @@ def myconverter(o):
     if isinstance(o, datetime.datetime):
         return o.__str__()
 
-def start_sqlConnector(record_queue, data_queue):
-    connector = SQLConnector("sensorLogs", "default", False)
+def start_sqlConnector(record_queue, data_queue, pipe):
+    connector = SQLConnector("sensorLogs", "default", False, pipe)
     connector.run_database(record_queue,data_queue)
 
 if __name__ == "__main__":

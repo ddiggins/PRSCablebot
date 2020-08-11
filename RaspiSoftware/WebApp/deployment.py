@@ -116,15 +116,16 @@ class Deployment:
             if self.pipe.poll() is True:
                 data = self.pipe.recv()
                 data = json.loads(data)
-                # print("data:", data)
+                print("data:", data)
                 # print(type(data))
-                # print("ENCODER?", data[0])
+                print("ENCODER?", data[0])
                 if data[0] == "encoder":
                     self.position = float(data[1])
                     # print('self.position: ', self.position)
 
             # self.socketio.emit("testing deployment socket")
             # self.socketio.on_event('update table', self.update_position)
+            print("Offset: " + str(abs(self.position - steps)))
             if abs(self.position - steps) < 400:
                 time.sleep(1)
                 break

@@ -84,7 +84,7 @@ def update_motor_mode(data):
     SERIAL_PARENT.send(mode)
     OUTGOING.append(mode)
 
-@SOCKETIO.on('run deployment')
+# @SOCKETIO.on('run deployment')
 def run_deployment(file):
     """ Runs a deployment for a given file """
     print("running deployment")
@@ -118,7 +118,7 @@ def index():
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             file.save(os.path.join('uploads', filename))
-            SOCKETIO.emit('run deployment', filename, broadcast=False)
+            # SOCKETIO.emit('run deployment', filename, broadcast=False)
             file_location = 'uploads/' + str(filename)
             run_deployment(file_location)
             print('File successfully uploaded')
@@ -153,7 +153,7 @@ if __name__ == '__main__':
 
     # Starts sql database connector that handles writing and reading(broadcasts to socket)
     DATABASE_CONNECTOR = Process(target=sqlConnector.start_sqlConnector,\
-        args=(RECORD_QUEUE,DATA_QUEUE))
+        args=(RECORD_QUEUE,DATA_QUEUE, ENCODER_PARENT))
     DATABASE_CONNECTOR.start()
 
     # Starts thread that runs serial communication.
