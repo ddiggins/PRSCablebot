@@ -12,12 +12,12 @@ from datetime import datetime
 
 class SerialCommunication:
 
-    def __init__(self, record_queue, pipe):
+    def __init__(self, record_queue, pipe, pipe2):
         """ Checks for serial devices on ACM ports and connects to the
             first available device. Opens a serial line and returns a reference to it """
         self.pipe = pipe
         self.record_queue = record_queue
-
+        self.encoder_pipe = pipe2
         
         for i in range(9):
             self.ser = None
@@ -80,6 +80,9 @@ class SerialCommunication:
             self.record_queue.put((datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3],\
                 str(data["id"]), str(list(data.values())[2]))) # Add data to database
         #print("writing to the database")
+        self.encoder_pipe.send((datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3],\
+                str(data["id"]), str(list(data.values())[2])))
+
 
     def run_communication(self):
         """ Runs a loop which reads and writes serial commands.
@@ -92,14 +95,31 @@ class SerialCommunication:
 
             # Receives incoming messages from from serial line and writes them to the database
             response = self.receive_command()
+            # print(type(response))
 
             if response != "":
-                #print("Response is:" + str(response))
+                print("Response is:" + str(response))
+                interpreted = self.interpret_json(response)
+                # print("Interpret json" + str(interpreted))
+                # print("type of interpret json" + str(type(interpreted)))
+                if ("position" in interpreted.keys()):
+                    self.encoder_pipe.send(interpreted["position"])
+                    # print(interpreted["position"])
+                    print("interprete postiion type", type(interpreted["position"]))
+                    # print("sending through encoder pipe")
+                # temp_response = ((datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3],\
+                # str(response["id"]), str(response(data.values())[2])))
+                # self.encoder_pipe.send(temp_response)
+                # {"id" : "encoder", "enabled" : 1, "position" : 58}  
+                # self.encoder_pipe.send()
+
                 self.write_to_database(response)
+
+
             time.sleep(.005)
 
-def start_serial_communication(record_queue, pipe):
-    ser = SerialCommunication(record_queue, pipe)
+def start_serial_communication(record_queue, pipe, pipe2):
+    ser = SerialCommunication(record_queue, pipe, pipe2)
     ser.run_communication()
 
 

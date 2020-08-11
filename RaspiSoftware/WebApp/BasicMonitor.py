@@ -36,10 +36,11 @@ def monitor(pipe):
 if __name__ == "__main__":
 
     SERIAL_CHILD, SERIAL_PARENT = Pipe()
+    ENCODER_CHILD, ENCODER_PARENT = Pipe()
     RECORD_QUEUE = Queue()
 
     COMMUNICATOR = Process(target=SerialCommunication.start_serial_communication,\
-            args=(RECORD_QUEUE, SERIAL_CHILD))
+            args=(RECORD_QUEUE, SERIAL_CHILD, ENCODER_CHILD))
     COMMUNICATOR.start()
 
     monitor(SERIAL_PARENT)

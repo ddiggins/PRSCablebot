@@ -9,7 +9,7 @@ from flask_socketio import SocketIO, emit, send
 class SQLConnector:
     """ A wrapper for mySQL to handle data dumps and requests """
 
-    def __init__(self, database_name, table_name, delete_existing, pipe):
+    def __init__(self, database_name, table_name, delete_existing):
 
         """ Set up database if not alrerady configured and assign structure 
         
@@ -32,7 +32,7 @@ class SQLConnector:
             database=database_name
             )
         self.cursor = self.database.cursor(buffered=True)
-        self.encoder_pipe = pipe
+        # self.encoder_pipe = pipe
         
 
         if table_name == "default": # Default assigns a new unique number
@@ -183,8 +183,12 @@ class SQLConnector:
             new_record = self.query_sensor('*', 1, 'timestamp', self.record_table)
             # print ("NEW RECORD: ", new_record)
             # print ("OLD RECORD: ", old_record)
-            
+
+            # temp_new_record = (new_record[2], new_record[3], new_record[1])
+            # temp_new_record = json.dumps(new_record, default = myconverter)
+            # self.encoder_pipe.send(temp_new_record)
             # Check that the record has updated.
+
             record_equality = (new_record == old_record)
             data_equality = (new_data == old_data)
             # print ("RECORD EQUALITY: ", record_equality)
@@ -197,7 +201,7 @@ class SQLConnector:
                 new_record = json.dumps(new_record, default = myconverter) # Converts into Json
                 # print("json new record: ", new_record)
                 self.socketio.emit("update robot logs table", new_record, broadcast=True)
-                self.encoder_pipe.send(new_record)
+                # self.encoder_pipe.send(new_record)
                 # print("sent new encoder value through pipe")
 
             if (not data_equality):
@@ -221,8 +225,8 @@ def myconverter(o):
     if isinstance(o, datetime.datetime):
         return o.__str__()
 
-def start_sqlConnector(record_queue, data_queue, pipe):
-    connector = SQLConnector("sensorLogs", "default", False, pipe)
+def start_sqlConnector(record_queue, data_queue):
+    connector = SQLConnector("sensorLogs", "default", False)
     connector.run_database(record_queue,data_queue)
 
 if __name__ == "__main__":

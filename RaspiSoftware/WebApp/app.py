@@ -153,12 +153,15 @@ if __name__ == '__main__':
 
     # Starts sql database connector that handles writing and reading(broadcasts to socket)
     DATABASE_CONNECTOR = Process(target=sqlConnector.start_sqlConnector,\
-        args=(RECORD_QUEUE,DATA_QUEUE, ENCODER_PARENT))
+    args=(RECORD_QUEUE,DATA_QUEUE))
+
+    # DATABASE_CONNECTOR = Process(target=sqlConnector.start_sqlConnector,\
+    #     args=(RECORD_QUEUE,DATA_QUEUE, ENCODER_PARENT))
     DATABASE_CONNECTOR.start()
 
     # Starts thread that runs serial communication.
     COMMUNICATOR = Process(target=SerialCommunication.start_serial_communication,\
-            args=(RECORD_QUEUE, SERIAL_CHILD))
+            args=(RECORD_QUEUE, SERIAL_CHILD, ENCODER_PARENT))
     COMMUNICATOR.start()
 
     # Runs app wrapped in Socket.io. "debug" and "use_reloader" need to be false
