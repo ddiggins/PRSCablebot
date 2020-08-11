@@ -14,20 +14,34 @@ def monitor(pipe):
         while sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
             line = sys.stdin.readline()
             if line:
-                pipe.send(line)
+                print("Sending: " + str(line))
+                pipe.send(str(line))
 
 
 # Sample commands:
 #{"id" : "Sensor1", "enabled" : "1"}
 #{"id" : "Sensor1", "enabled" : "0"}
+#{"id":"Motor1", "enabled":"0"}
+#{"id":"Motor1", "enabled":"1"}
+#{"id":"Motor1", "speed":"1"}
+#{"id":"encoder", "enabled":"1"}
+#{"id":"Motor1", "mode":"1"}
+#{"id":"Motor1", "mode":"0"}
+#{"id":"Motor1", "target":"0"}
+# OLD: 11.6
+# NEW: 12.4
+
 
 
 if __name__ == "__main__":
 
     SERIAL_CHILD, SERIAL_PARENT = Pipe()
+    RECORD_QUEUE = Queue()
 
     COMMUNICATOR = Process(target=SerialCommunication.start_serial_communication,\
-            args=(None, SERIAL_CHILD))
+            args=(RECORD_QUEUE, SERIAL_CHILD))
     COMMUNICATOR.start()
 
     monitor(SERIAL_PARENT)
+
+    
