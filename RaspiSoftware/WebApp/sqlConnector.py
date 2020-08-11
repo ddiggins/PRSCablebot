@@ -198,7 +198,7 @@ class SQLConnector:
                 # print("json new record: ", new_record)
                 self.socketio.emit("update robot logs table", new_record, broadcast=True)
                 self.encoder_pipe.send(new_record)
-                print("sent new encoder value through pipe")
+                # print("sent new encoder value through pipe")
 
             if (not data_equality):
                 # Update old record to new record since we already compared them
