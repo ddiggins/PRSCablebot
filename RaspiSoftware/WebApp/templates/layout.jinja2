@@ -6,14 +6,14 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
         <!-- [CSS] Bootstrap -->
-        <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/bootstrap.css')}}" />
-        <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/datatables.css')}}"/>
+        <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/bootstrap.min.css')}}" />
+        <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/datatables.min.css')}}"/>
 
         <!-- [JavaScript] jQuery, Bootstrap, SocketIO, and Datatables -->       
         <script type="text/javascript" src="{{url_for('static', filename='javascript/jquery.min.js')}}"></script>
         <script type="text/javascript" src="{{url_for('static', filename='javascript/bootstrap.bundle.min.js')}}"></script>
         <script type="text/javascript" src="{{url_for('static', filename='javascript/socket.io.js')}}"></script>
-        <script type="text/javascript" src="{{url_for('static', filename='javascript/datatables.js')}}"></script>
+        <script type="text/javascript" src="{{url_for('static', filename='javascript/datatables.min.js')}}"></script>
         
         <!-- Link to Relevant Styles -->
         {% block styles %}{% endblock %}
