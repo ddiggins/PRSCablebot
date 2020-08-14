@@ -26,12 +26,12 @@ class Camera:
         """ Take a single image and save it with a unique name to the given folder """
 
         timestamp = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
-        print("ABOUT TO START PREVIEW")
+        # print("ABOUT TO START PREVIEW")
         self.camera.start_preview()
         self.camera.annotate_text = timestamp + " UTC"
         time.sleep(2)
         image_name = self.image_folder_path + "/image" + str(timestamp) + ".jpg"
-        print("ABOUT TO CAPTURE IMAGE")
+        # print("ABOUT TO CAPTURE IMAGE")
         self.camera.capture(image_name, quality=10)
         print("IMAGE CAPTURED")
         self.camera.stop_preview()

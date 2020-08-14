@@ -20,9 +20,9 @@ from collections import OrderedDict
 import struct
 import logging
 from datetime import datetime
-# from table_extractor import csv_to_dictionary
+from table_extractor import csv_to_dictionary
 
-        
+
 FORMAT = ('%(asctime)-15s %(threadName)-15s'
     ' %(levelname)-8s %(module)-15s:%(lineno)-8s %(message)s')
 logging.basicConfig(format=FORMAT)
@@ -162,5 +162,3 @@ if __name__ == "__main__":
     modbus.collect_data()
     log.debug(data)
     log.debug(modbus.sensors)
-
-

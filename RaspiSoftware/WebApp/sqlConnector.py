@@ -9,14 +9,21 @@ from flask_socketio import SocketIO, emit, send
 class SQLConnector:
     """ A wrapper for mySQL to handle data dumps and requests """
 
-    # def __init__(self, database_name, table_name, delete_existing, lock):
     def __init__(self, database_name, table_name, delete_existing):
 
-        """ Set up database if not alrerady configured and assign structure """
-
+        """ Set up database if not alrerady configured and assign structure 
         
-        self.socketio = SocketIO(message_queue='redis://')  # the socketio object
+        Delete all tables in the sensorLogs:
+        // "-s -r" suppressed the query from pretty printing
+        mysql -u databaseUser -p --password=user -s -r
+        // Generate list of commands that delete tables
+        SELECT concat('DROP TABLE IF EXISTS `', table_name, '`;') FROM information_schema.tables WHERE table_schema = 'sensorLogs';
+        // Copy the above commands
+        use sensorLogs
+        // Paste commands
+        """
 
+        self.socketio = SocketIO(message_queue='redis://', async_mode='threading')  # the socketio object
         # Connect to server and create cursor
         self.database = mysql.connector.connect(
             host="localhost",
@@ -25,6 +32,7 @@ class SQLConnector:
             database=database_name
             )
         self.cursor = self.database.cursor(buffered=True)
+        # self.encoder_pipe = pipe
         
 
         if table_name == "default": # Default assigns a new unique number
@@ -32,41 +40,50 @@ class SQLConnector:
             self.cursor.execute("SHOW TABLES")
             a = self.cursor.fetchall()
 
-            tables = [x[0] for x in a if x[0][3:].isnumeric()] # Fetch names of all numbered tables
+            tables = [x[0] for x in a if x[0][4:].isnumeric()] # Fetch names of all numbered tables
             # Sort tables in ascending order
             tables.sort(key=lambda x: int("".join([i for i in x if i.isdigit()])))
 
             if tables == []:
-                new_table_name = "run0"
+                new_record_table = "logs0"
+                new_data_table = "data0"
             else:
-                new_table_name = "run" + str(int(tables[-1][3:]) + 1) # Create new name one greater than existing
-                print ("creating new table name")
-            self.table_name = new_table_name
-
+                new_record_table = "logs" + str(int(tables[-1][4:]) + 1) # Create new name one greater than existing
+                new_data_table = "data" + str(int(tables[-1][4:]) + 1) # Create new name one greater than existing
+            self.record_table = new_record_table
+            self.data_table = new_data_table
         else:
-            self.table_name = table_name
-
+            self.record_table = "logs-" + table_name
+            self.data_table = "data-" + table_name
+        print(self.record_table)
+        print(self.data_table)
 
         # Clear table if specifiedTrueTrue
         if delete_existing:
-            self.cursor.execute("DROP TABLE IF EXISTS " + str(self.table_name))
+            self.cursor.execute("DROP TABLE IF EXISTS " + str(self.record_table))
+            self.cursor.execute("DROP TABLE IF EXISTS " + str(self.data_table))
 
         # Create table
-        self.cursor.execute("CREATE TABLE IF NOT EXISTS " + str(self.table_name) \
-            + " (id INT AUTO_INCREMENT PRIMARY KEY, timestamp TIMESTAMP(3),\
-                 name VARCHAR(255), value VARCHAR(255))")
+        self.cursor.execute("CREATE TABLE IF NOT EXISTS " + str(self.record_table) \
+            + " (id INT AUTO_INCREMENT PRIMARY KEY, timestamp TIMESTAMP(3),"
+            + "name VARCHAR(255), value VARCHAR(255))")
+        self.cursor.execute("CREATE TABLE IF NOT EXISTS " + str(self.data_table) \
+            + " (id INT AUTO_INCREMENT PRIMARY KEY, timestamp TIMESTAMP(3),"
+            + "name VARCHAR(255), value VARCHAR(255))")
         
         # Create dummy placeholder line.
         
-        self.add_data('2000-01-01 00:00:01.000', "dummyName", "dummyValue")
+        self.add_data('2000-01-01 00:00:01.000', "dummyName", "dummyValue", self.record_table)
+        self.add_data('2000-01-01 00:00:01.000', "NAME", "VALUE", self.data_table)
 
-
-    def add_data(self, timestamp, name, value):
+    def add_data(self, timestamp, name, value, table):
         """ Add a row to the table
             name and value are limited to 255 char strings
             timestamp must be in format 'YYYY-MM-DD hh:mm:ss.dddd' """
 
         # Check for errors in inputs
+        # Verify correct table is passed in
+        assert table == self.data_table or table == self.record_table
         # Verify that inputs are strings
         assert isinstance(timestamp, str) and isinstance(name, str) and isinstance(value, str),\
              "Inputs must be of type string"
@@ -79,42 +96,40 @@ class SQLConnector:
         except ValueError:
             raise ValueError("Incorrect data format, should be 'Y-m-d H:M:S.f'")
 
-        sql = "INSERT INTO " + str(self.table_name) + " (timestamp, name, value) VALUES (%s,%s,%s)"
+        sql = "INSERT INTO " + str(table) + " (timestamp, name, value) VALUES (%s,%s,%s)"
         val = (timestamp, name, value)
         self.cursor.execute(sql, val)
 
         self.database.commit()
-        print(self.cursor.rowcount, "record inserted.")
+        # print(self.cursor.rowcount, "record inserted.")
         return self.cursor.rowcount
 
 
-    def print_table(self):
+    def print_table(self, table):
         """ Prints the contents of the table (be careful with large datasets) """
-        self.cursor.execute("SELECT * FROM " + str(self.table_name))
+        assert table == self.data_table or table == self.record_table
+        self.cursor.execute("SELECT * FROM " + str(table))
         result = self.cursor.fetchall()
 
         for x in result:
             print(x)
 
 
-    def query_sensor(self, name, num_records, order_column, table_name="default"): # add in default to generate new tables
+    def query_sensor(self, name, num_records, order_column, table): # add in default to generate new tables
         """ Queries database for num_records recordings matching name. 
 
         To just select the n last rows regardless of name, set name = "*"
         """
         # "default" signifies that new tables are created each run, 
         # so query selects from the latest table
-        if table_name == "default":
-            if name == "*": 
-                sql = "SELECT * FROM " + str(self.table_name) + " ORDER BY id DESC"
-            else:
-                sql = "SELECT * FROM " + str(self.table_name) + " WHERE name = %s ORDER BY %s"
 
+        # Verify table name
+        assert table == self.data_table or table == self.record_table
+
+        if name == "*":
+            sql = "SELECT * FROM " + str(table) + " ORDER BY id DESC"
         else:
-            if name == "*":
-                sql = "SELECT * FROM " + str(table_name) + " ORDER BY id DESC"
-            else:
-                sql = "SELECT * FROM " + str(table_name) + " WHERE name = %s ORDER BY %s"
+            sql = "SELECT * FROM " + str(table) + " WHERE name = %s ORDER BY %s"
 
         if name == "*":
             # adr = (order_column)
@@ -143,42 +158,63 @@ class SQLConnector:
         return res[:num_records+1]
 
 
-    def run_database(self, record_queue):
+    def run_database(self, record_queue, data_queue):
         """ Check for incoming requests and process them """
         print ("running database")
         # Setting old record so the newly retrieved ones have something to compare to
-        old_record = self.query_sensor('*', 1, 'timestamp')
+        old_data = self.query_sensor('*', 1, 'timestamp',self.data_table)
+        old_record = self.query_sensor('*', 1, 'timestamp',self.record_table)
+        test = True
         while 1:
-
             # Write into database
             if not record_queue.empty():
-                print("INSERTING RECORD")
+                # print("INSERTING RECORD")
                 data = record_queue.get()
-                self.add_data(data[0], data[1], data[2])
-
-            time.sleep(0.01)
+                self.add_data(data[0], data[1], data[2], self.record_table)
+            time.sleep(0.1)
+            if not data_queue.empty():
+                # print("INSERTING RECORD")
+                data = data_queue.get()
+                self.add_data(data[0], data[1], data[2], self.data_table)
+            time.sleep(0.1)
 
             # reading database for frontend table display
-            new_record = self.query_sensor('*', 1, 'timestamp')
+            new_data = self.query_sensor('*', 1, 'timestamp', self.data_table)
+            new_record = self.query_sensor('*', 1, 'timestamp', self.record_table)
             # print ("NEW RECORD: ", new_record)
             # print ("OLD RECORD: ", old_record)
-            
+
+            # temp_new_record = (new_record[2], new_record[3], new_record[1])
+            # temp_new_record = json.dumps(new_record, default = myconverter)
+            # self.encoder_pipe.send(temp_new_record)
             # Check that the record has updated.
+
             record_equality = (new_record == old_record)
+            data_equality = (new_data == old_data)
             # print ("RECORD EQUALITY: ", record_equality)
-            # if (new_record != old_record):
-            if (record_equality == False):
+            if (not record_equality):
                 # Update old record to new record since we already compared them
                 old_record = new_record
                 # Removes id of record, reorders so that the sensor name is first.
                 # (name, value, timestamp)
                 new_record = (new_record[2], new_record[3], new_record[1])
                 new_record = json.dumps(new_record, default = myconverter) # Converts into Json
-                print("json new record: ", new_record)
-                # self.socketio.emit("update table", new_record)
-                self.socketio.emit("update table", new_record, broadcast = True)
-                print("emited update table")
-    
+                # print("json new record: ", new_record)
+                self.socketio.emit("update robot logs table", new_record, broadcast=True)
+                # self.encoder_pipe.send(new_record)
+                # print("sent new encoder value through pipe")
+
+            if (not data_equality):
+                # Update old record to new record since we already compared them
+                old_data = new_data
+                # Removes id of record, reorders so that the sensor name is first.
+                # (name, value, timestamp)
+                new_data = (new_data[2], new_data[3], new_data[1])
+                new_data = json.dumps(new_data, default = myconverter) # Converts into Json
+                # print("json new record: ", new_record)
+                self.socketio.emit("update Aqua TROLL data table", new_data, broadcast=True)
+                
+
 def add_record(record, record_queue, lock):
     """ Add record to the database """
     lock.acquire()
@@ -189,9 +225,9 @@ def myconverter(o):
     if isinstance(o, datetime.datetime):
         return o.__str__()
 
-def start_sqlConnector(record_queue):
+def start_sqlConnector(record_queue, data_queue):
     connector = SQLConnector("sensorLogs", "default", False)
-    connector.run_database(record_queue)
+    connector.run_database(record_queue,data_queue)
 
 if __name__ == "__main__":
     # REQUEST_QUEUE_GLOBAL = Queue()

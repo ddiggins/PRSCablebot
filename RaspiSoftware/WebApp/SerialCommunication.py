@@ -12,12 +12,12 @@ from datetime import datetime
 
 class SerialCommunication:
 
-    def __init__(self, record_queue, pipe):
+    def __init__(self, record_queue, pipe, pipe2):
         """ Checks for serial devices on ACM ports and connects to the
             first available device. Opens a serial line and returns a reference to it """
         self.pipe = pipe
         self.record_queue = record_queue
-
+        self.encoder_pipe = pipe2
         
         for i in range(9):
             self.ser = None
@@ -36,8 +36,7 @@ class SerialCommunication:
     def send_command(self, command):
         """ Sends a command string over serial """
         self.ser.write((command + "\r\n").encode())
-        print("writing Command")
-        print("Command written: " + (command + "\r\n"))
+        print("Writing command: " + (command + "\r\n"))
         return 1
 
     def receive_command(self):
@@ -53,7 +52,6 @@ class SerialCommunication:
         """Interprets json and parses it into attributes"""
         # Creates dict named data with json info. Throws ValueError if
         # invalid Json input.
-        print("line in interpret_json: ", line)
         try:
             data = json.loads(line)
         except json.decoder.JSONDecodeError:
@@ -72,8 +70,8 @@ class SerialCommunication:
         # print("data:", data)
         current_time = datetime.now().isoformat()
         timestamp = str(current_time)
-        print("Timestamp:" + timestamp)
-        print("Data:" + str(json.dumps(data)))
+        # print("Timestamp:" + timestamp)
+        # print("Data:" + str(json.dumps(data)))
 
         assert 'id' in data.keys(), "Input string missing key 'id' "
         assert data['id'] != "", "Input id is empty"
@@ -81,12 +79,15 @@ class SerialCommunication:
         if len(list(data.values())) == 3: # If the record has data associated
             self.record_queue.put((datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3],\
                 str(data["id"]), str(list(data.values())[2]))) # Add data to database
-        print("writing to the database")
+        #print("writing to the database")
+        self.encoder_pipe.send((datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3],\
+                str(data["id"]), str(list(data.values())[2])))
+
 
     def run_communication(self):
         """ Runs a loop which reads and writes serial commands.
             Uses two queues to communicate with other processes """
-
+        print('running serial communication')
         while 1:
             # Sends command from the webapp to the serial line via pipe.
             if self.pipe.poll() is True:
@@ -94,15 +95,31 @@ class SerialCommunication:
 
             # Receives incoming messages from from serial line and writes them to the database
             response = self.receive_command()
+            # print(type(response))
 
             if response != "":
                 print("Response is:" + str(response))
-                print("About to write serial messages into the database. ")
+                interpreted = self.interpret_json(response)
+                # print("Interpret json" + str(interpreted))
+                # print("type of interpret json" + str(type(interpreted)))
+                if ("position" in interpreted.keys()):
+                    self.encoder_pipe.send(interpreted["position"])
+                    # print(interpreted["position"])
+                    print("interprete postiion type", type(interpreted["position"]))
+                    # print("sending through encoder pipe")
+                # temp_response = ((datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3],\
+                # str(response["id"]), str(response(data.values())[2])))
+                # self.encoder_pipe.send(temp_response)
+                # {"id" : "encoder", "enabled" : 1, "position" : 58}  
+                # self.encoder_pipe.send()
+
                 self.write_to_database(response)
+
+
             time.sleep(.005)
 
-def start_serial_communication(record_queue, pipe):
-    ser = SerialCommunication(record_queue, pipe)
+def start_serial_communication(record_queue, pipe, pipe2):
+    ser = SerialCommunication(record_queue, pipe, pipe2)
     ser.run_communication()
 
 
